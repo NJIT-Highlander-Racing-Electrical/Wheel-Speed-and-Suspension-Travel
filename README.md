@@ -10,7 +10,7 @@ With the sprag clutches, the wheels, wheel hubs, and brake rotor all spin togeth
 
 ### Gear Tooth/Ferrous Metal Target Sensor (chosen design)
 
-These type of sensors (like the S12-18ADSO-5KSB10 we have in stock) provide a digital output that tracks ferrous metal targets. Their datasheet states that they can be used for detecting holes in rotating discs, such as a brake rotor. Using the brake rotor is ideal for this situation as it does not require adding any additional hardware (such as magnets or a trigger wheel), and it actually reduces the weight of the rotor.
+These type of sensors (like the S12-18ADSO-5KSB10 we have in stock -- [datasheet here](https://dc-components.com/wp-content/uploads/Sensor-Solutions-S12-18ADSO-5KSB10.pdf)) provide a digital output that tracks ferrous metal targets. Their datasheet states that they can be used for detecting holes in rotating discs, such as a brake rotor. Using the brake rotor is ideal for this situation as it does not require adding any additional hardware (such as magnets or a trigger wheel), and it actually reduces the weight of the rotor.
 
 It seems best fit to put four holes in the edge of the rotor that will be detected by this sensor. This sensor can be mounted to a tab/bracket on the caliper, and its distance to the rotor can be adjusted using the sensor's threads/nuts. Because the rotor/caliper distances never change, we can get the sensor close enough to the rotor for accurate readings. 
 
