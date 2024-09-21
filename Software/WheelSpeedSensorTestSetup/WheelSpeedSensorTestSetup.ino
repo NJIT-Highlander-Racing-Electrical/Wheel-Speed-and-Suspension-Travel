@@ -15,6 +15,12 @@ unsigned long currentReadingMillis = 1;
 
 float rpm = 0;
 
+int n = 10; // number of previous readings to use in averaging;
+int lastRpmReadings[n] = { 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 };
+int rpmArrayIndex = 0;
+
+int timeoutThreshold = 2000;  // Time in ms without a reading before RPM display resets
+
 bool updateFlag = false;
 
 
@@ -56,10 +62,20 @@ void loop(void) {
     tft.setTextColor(GC9A01A_WHITE);
     tft.setTextSize(3);
     tft.println("RPM");
-  
+
     // Clear the update flag
     updateFlag = false;
-  
+  }
+
+  // If reached reading timeout
+  if ((millis() - currentReadingMillis) > timeoutThreshold) {
+
+    // Set last reading to millis()
+    currentReadingMillis = millis();
+
+    // Set rpm to zero
+    rpm = 0;
+    updateFlag = true;
   }
 }
 
@@ -73,6 +89,24 @@ void updateRPM() {
 
   // Calculate the new RPM value
   rpm = (1.00 / (float(currentReadingMillis - lastReadingMillis) / 1000.0)) * 60.0 / targetsPerRevolution;
+
+/*
+
+  // FRAMEWORK FOR AVERAGING LAST 10 VALUES:
+
+  // update last readings array
+  lastRpmReadings[rpmArrayIndex] = rpm;
+  if (rpmArrayIndex == (n-1)) {
+    rpmArrayIndex = 0;
+  } else {
+    rpmArrayIndex++;
+  }
+
+  // Calculate average of new set of n values in array
+
+  // Also need to change the variable printed to display in display update function
+
+*/
 
   updateFlag = true;
 }
