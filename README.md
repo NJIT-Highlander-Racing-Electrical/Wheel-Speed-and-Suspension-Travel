@@ -12,7 +12,7 @@ With the sprag clutches, the wheels, wheel hubs, and brake rotor all spin togeth
 
 These type of sensors (like the gear tooth speed sensors we have in stock -- [datasheet here](https://www.jameco.com/Jameco/Products/ProdDS/512401.pdf)) provide a digital output that tracks ferrous metal targets. Their datasheet states that they can be used for detecting holes in rotating discs, such as a brake rotor. Using the brake rotor is ideal for this situation as it does not require adding any additional hardware (such as magnets or a trigger wheel), and it actually reduces the weight of the rotor.
 
-The ones we have in stock are no longer for sale, but these GS100701 could work: https://www.digikey.com/en/products/detail/zf-electronics/GS100701/280932
+The ones we have in stock are no longer for sale, but [these GS100701](https://www.digikey.com/en/products/detail/zf-electronics/GS100701/280932) could work.
 
 It seems best fit to put four holes in the edge of the rotor that will be detected by this sensor. This sensor can be mounted to a tab/bracket on the caliper, and its distance to the rotor can be adjusted using the sensor's threads/nuts. Because the rotor/caliper distances never change, we can get the sensor close enough to the rotor for accurate readings. 
 
