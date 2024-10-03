@@ -2,7 +2,7 @@
 
 The 2024-2025 vehicle will be integrating sprag clutches into each of the four wheels. This allows for all four wheels to be fully locked together when power is applied, but all four wheels to be fully unlocked while coasting. There are numerous benefits to this setup that are not relevant to this project, however they present the need for individual wheel speed sensors.
 
-These sensors provide data to the suspension subteam about how each wheel is rotating as we move through corners. Along with other vehicle data such as yaw rate, GPS position, vehicle velocity, and steering angle, suspension can get a better pictures of how these sprag clutches affect vehicle performance. 
+These sensors provide data to the suspension subteam about how each wheel is rotating as we move through corners. Along with other vehicle data such as yaw rate, GPS position, vehicle velocity, and steering angle, suspension can get a better picture of how these sprag clutches affect vehicle performance. 
 
 ## Potential Designs
 
