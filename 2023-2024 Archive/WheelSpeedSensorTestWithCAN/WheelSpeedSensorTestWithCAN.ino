@@ -5,7 +5,7 @@
 
 
 const int speedSensorPin = 13;
-int targetsPerRevolution = 1;
+int targetsPerRevolution = 8;
 
 unsigned long lastReadingMillis = 1;
 unsigned long currentReadingMillis = 1;
