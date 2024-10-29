@@ -1,5 +1,21 @@
 #include "src/libraries/BajaCAN.h" // https://arduino.github.io/arduino-cli/0.35/sketch-specification/#src-subfolder
 
+/*
+*
+*  NOTE: Maybe something should be added in this program that does the following:
+*  
+*  If the elapsed time is less than we would ever expect to see (at the fastest RPM),
+*  then ignore the reading. Don't calculate RPM, but set the read time to 
+*  lastReadingMillis so that we have a starting point for when we see another rev.
+*
+*  Also Note: This code is old and based off a previous version of 2023-2024 Archive.
+*  Changes have been made in that version and the ISR was made as short as possible, so
+*  make sure this reflects that. We also have to make sure that all of our processing is
+*  done before the next interrupt service routine is triggered to prevent any data errors
+*
+*/
+
+
 const int speedSensorPin = 13;
 int targetsPerRevolution = 1;
 
