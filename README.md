@@ -28,4 +28,4 @@ These could be used to detect when a white stripe passes by the emitter/receiver
 
 ## Electrical Design
 
-These four sensors can be run to a single microcontroller located inside the vehicle, which can then transmit the data over CAN. Ideally, each sensor reading is interrupt-based on the microcontroller so that calculations for RPM can be done as fast as possible. Each sensor should have connectors so that it can easily be removed from the microcontroller/enclosure if needed
+These four sensors can be run to a single microcontroller located inside the vehicle, which can then transmit the data over CAN. Ideally, each sensor reading is interrupt-based on the microcontroller so that calculations for RPM can be done as fast as possible. Each sensor should have connectors so that it can easily be removed from the microcontroller/enclosure if needed. We will be using 3 pin aviation plug connectors to stay uniform in our connector types while preventing the ports from being mixed up with the 4-pin CAN/PWR connectors.
