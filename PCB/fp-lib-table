@@ -1,0 +1,5 @@
+(fp_lib_table
+  (version 7)
+  (lib (name "footprint")(type "KiCad")(uri "${KIPRJMOD}/Libraries/footprint")(options "")(descr ""))
+  (lib (name "WheelSpeed")(type "KiCad")(uri "${KIPRJMOD}/Libraries/WheelSpeed.pretty")(options "")(descr ""))
+)
