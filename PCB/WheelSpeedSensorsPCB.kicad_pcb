@@ -1996,7 +1996,7 @@
 		(pad "1" thru_hole oval
 			(at 0 0)
 			(size 1.75 3)
-			(drill 0.762)
+			(drill 1)
 			(layers "*.Cu" "*.Mask")
 			(remove_unused_layers no)
 			(net 23 "+3.3V")
@@ -2007,7 +2007,7 @@
 		(pad "2" thru_hole oval
 			(at 2.54 0)
 			(size 1.75 3)
-			(drill 0.762)
+			(drill 1)
 			(layers "*.Cu" "*.Mask")
 			(remove_unused_layers no)
 			(net 1 "GND")
@@ -2018,7 +2018,7 @@
 		(pad "3" thru_hole oval
 			(at 5.08 0)
 			(size 1.75 3)
-			(drill 0.762)
+			(drill 1)
 			(layers "*.Cu" "*.Mask")
 			(remove_unused_layers no)
 			(net 24 "Net-(U3-D25)")
@@ -2029,7 +2029,7 @@
 		(pad "4" thru_hole oval
 			(at 7.62 0)
 			(size 1.75 3)
-			(drill 0.762)
+			(drill 1)
 			(layers "*.Cu" "*.Mask")
 			(remove_unused_layers no)
 			(net 28 "Net-(U3-D26)")
@@ -2040,7 +2040,7 @@
 		(pad "5" thru_hole oval
 			(at 10.16 0)
 			(size 1.75 3)
-			(drill 0.762)
+			(drill 1)
 			(layers "*.Cu" "*.Mask")
 			(remove_unused_layers no)
 			(net 29 "unconnected-(U4-SLNT-Pad5)")
@@ -2051,7 +2051,7 @@
 		(pad "6" thru_hole oval
 			(at 12.7 0)
 			(size 1.75 3)
-			(drill 0.762)
+			(drill 1)
 			(layers "*.Cu" "*.Mask")
 			(remove_unused_layers no)
 			(net 8 "Net-(J7-Pin_3)")
@@ -2062,7 +2062,7 @@
 		(pad "7" thru_hole oval
 			(at 15.24 0)
 			(size 1.75 3)
-			(drill 0.762)
+			(drill 1)
 			(layers "*.Cu" "*.Mask")
 			(remove_unused_layers no)
 			(net 9 "Net-(J7-Pin_4)")
