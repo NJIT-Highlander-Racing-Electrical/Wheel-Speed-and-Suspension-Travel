@@ -4320,8 +4320,8 @@
 			(justify left bottom)
 		)
 	)
-	(gr_text "3.3V"
-		(at 127 141.5 0)
+	(gr_text "12V"
+		(at 127.200726 141.490471 0)
 		(layer "F.SilkS")
 		(uuid "f365e313-33dc-4601-b929-c1230333c070")
 		(effects
