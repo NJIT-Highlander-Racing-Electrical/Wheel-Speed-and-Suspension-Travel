@@ -16,6 +16,17 @@
 */
 
 
+/* 
+
+THIS UPGRADE IS VERY IMPORTANT AND DON'T FORGET TO DO THIS:
+
+Knowing when a wheel is locking up and sliding or losing traction and speeding up is very important.
+
+We can detect this by knowing at roughly what time we should see our next revolution. For example, if our last elapsed time was 50 milliseconds, we can set our lower threshold to be 25 ms and our upper threshold to be 75 ms. If we see a reading in less than 25 ms, we know that our wheels lost traction and are speeding up. If we don't see a reading within 50 + 25 ms (75ms), we know that our wheels must have locked up. If we lock up or have wheelspin, display this as a flashing error on the dashbaord. Top of left display corresponds to front left wheel, bottom of left display is rear left wheel, etc. If skidding, display RED or something. If overspeeding, display BLUE or something
+
+*/
+
+
 const int speedSensorPin = 13;
 int targetsPerRevolution = 1;
 
