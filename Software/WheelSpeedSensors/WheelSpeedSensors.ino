@@ -1,4 +1,4 @@
-#include "src/libraries/BajaCAN.h" // https://arduino.github.io/arduino-cli/0.35/sketch-specification/#src-subfolder
+#include "src/libraries/BajaCAN.h"  // https://arduino.github.io/arduino-cli/0.35/sketch-specification/#src-subfolder
 
 /*
 *
@@ -16,149 +16,177 @@
 */
 
 
-/* 
+/*
 
-THIS UPGRADE IS VERY IMPORTANT AND DON'T FORGET TO DO THIS:
-
-Knowing when a wheel is locking up and sliding or losing traction and speeding up is very important.
-
-We can detect this by knowing at roughly what time we should see our next revolution. For example, if our last elapsed time was 50 milliseconds, we can set our lower threshold to be 25 ms and our upper threshold to be 75 ms. If we see a reading in less than 25 ms, we know that our wheels lost traction and are speeding up. If we don't see a reading within 50 + 25 ms (75ms), we know that our wheels must have locked up. If we lock up or have wheelspin, display this as a flashing error on the dashbaord. Top of left display corresponds to front left wheel, bottom of left display is rear left wheel, etc. If skidding, display RED or something. If overspeeding, display BLUE or something
+  We also need to implement suspension displacement code
 
 */
 
+#define frontLeftWheelPin 16;
+#define rearLeftWheelPin 17;
+#define frontRightWheelPin 18;
+#define rearRightWheelPin 19;
 
-const int speedSensorPin = 13;
-int targetsPerRevolution = 1;
+const float wheelDiameter = 23;      // Diameter of our wheels in inches
+const int targetsPerRevolution = 4;  // number of sensing points per revolution on the wheel
+const float wheelSpinThreshold = 5;  // Speed difference (mph) above GPS vehicle velocity where we will declare wheelspin
+const float wheelSkidThreshold = 5;  // Speed difference (mph) below GPS vehicle velocity where we will declare skidding
 
-unsigned long lastReadingMillis = 1;
-unsigned long currentReadingMillis = 1;
+const float rpmToMphFactor = wheelDiameter / 63360 * 3.1415 * 60;  // When wheel RPM is multiplied by this, it results in that wheel's linear speed in MPH
 
-float rpm = 0;
+float vehicleSpeedMPH = 0;  // Since GPS velocity is given in m/s, this converts and stores to MPH
 
-#define n 10 // number of previous readings to use in averaging;
-int lastRpmReadings[n] = { 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 };
-int rpmArrayIndex = 0;
-
-int timeoutThreshold = 2000;  // Time in ms without a reading before RPM display resets
-
-bool updateFlag = false;
-
+// At one mile per hour, we are moving 1.46 feet per second
+// Our wheel circumference is 6 feet
+// This means we have 0.243 wheel revolutions per second
+// If we have 4 targets on the wheel, we have a target going by every 1.03 seconds
+// So, If we do not see a reading in 1.25 seconds for example, we know our wheel speed should be zero
+// This comes by doing 1/(0.243 * targetsPerRevolution), plus a small error threshold, say 25%
+const int zeroTimeoutMS = (1.00 / (0.243 * (float)targetsPerRevolution)) * 1.25;
 
 
+// Class that defines shared variables and functions between the four wheels
+class Wheel {
+
+public:
+
+  int sensorPin;  // GPIO that sensor is hooked up to
+
+  unsigned long lastReadingMillis;
+  unsigned long currentReadingMillis;
+  unsigned long expectedNextMillis;  // based on current RPM, when we should expect the next reading
+
+  int rpm;  // variable to store calculated RPM value
+
+  float wheelSpeedMPH;  // calculated wheel velocity for comparison with GPS vehicle velocity
+
+  volatile bool updateFlag;  // updateFlag is used to know when to calculate a new RPM
+
+  enum int wheelState {
+    GOOD,
+    SPIN,
+    SKID
+  };
+
+  Wheel(int pinNumber) {
+    sensorPin = pinNumber;
+    lastReadingMillis = 0;
+    currentReadingMillis = 0;
+    expectedNextMillis = 0;
+    rpm = 0;
+    wheelSpeedMPH = 0;
+    updateFlag = false;
+    wheelState = GOOD;
+
+    pinMode(sensorPin, INPUT);
+  }
+
+
+  // Calculates RPM based on elapsed time between last reading and current time
+  // Only runs after respective ISR is triggered
+  void calculateRPM() {
+    if (updateFlag) {
+
+      // Clear the update flag
+      updateFlag = false;
+
+      // Set lastReadingMillis to the most recent reading
+      lastReadingMillis = currentReadingMillis;
+      // Then, update currentReadingMillis with the reading that triggered this condition
+      currentReadingMillis = millis();
+
+      // Calculate the new RPM value
+      if (currentReadingMillis != lastReadingMillis) {
+        rpm = (1.00 / (float(currentReadingMillis - lastReadingMillis) / 1000.0)) * 60.0 / targetsPerRevolution;
+        wheelSpeedMPH = rpm * rpmToMphFactor;
+      } else {
+        Serial.print("Avoided Divide-By-Zero error, not updating rpm value");
+        return;
+      }
+
+
+      Serial.print("Revolution detected on pin ");
+      Serial.print(sensorPin);
+      Serial.print("! RPM: ");
+      Serial.println(rpm);
+    }
+  }
+
+  // Checks to see if a certain period of time has passed since last reading
+  // If we surpass that threshold, set the RPM to zero
+  void checkZeroRPM() {
+    if ((millis() - currentReadingMillis) > zeroTimeoutMS) {
+
+      // Set last reading to millis() so we can bounce back once another reading is detected
+      currentReadingMillis = millis();
+
+      // Set rpm to zero
+      rpm = 0;
+      updateFlag = true;
+    }
+  }
+
+  // Compares wheel speed to GPS vehicle speed to see if we have wheelspin or skidding
+  void checkWheelState() {
+    if ((wheelSpeedMPH - vehicleSpeedMPH) > wheelSpinThreshold) {
+      wheelState = SPIN;
+    } else if ((wheelSpeedMPH - vehicleSpeedMPH) > -wheelSkidThreshold) {
+      wheelState = SKID;
+    } else {
+      wheelState = GOOD;
+    }
+  }
+
+  // Runs all of the above functions for simpler calls in loop()
+  void updateWheelStatus() {
+    calculateRPM();
+    checkZeroRPM();
+    checkWheelState();
+  }
+};
+
+Wheel frontLeftWheel(frontLeftWheelPin);
+Wheel rearLeftWheel(rearLeftWheelPin);
+Wheel frontRightWheel(frontRightWheelPin);
+Wheel rearRightWheel(rearRightWheelPin);
 
 void setup() {
   setupCAN(WHEEL_SPEED);
   Serial.begin(115200);
 
-  pinMode(speedSensorPin, INPUT);
-  //
-  // If the speed sensor detects a metal, it outputs a HIGH
-  // Otherwise, it outputs a LOW
-  //
-  // Thus, we want to trigger interupt on LOW
-  //
-  attachInterrupt(digitalPinToInterrupt(speedSensorPin), updateRPM, FALLING);
-
-
-  while (!Serial);
-
-  Serial.println("CAN Sender");
-
-  CAN.setPins(4,5);
-
-  // start the CAN bus at 500 kbps
-  if (!CAN.begin(1000E3)) {
-    Serial.println("Starting CAN failed!");
-    while (1);
-  }
+  // If the speed sensor detects a metal, it outputs a HIGH. Otherwise, LOW
+  // Thus, we want to trigger interupt on LOW to HIGH transition
+  attachInterrupt(digitalPinToInterrupt(frontLeftWheel.sensorPin), frontLeftISR, RISING);
+  attachInterrupt(digitalPinToInterrupt(rearLeftWheel.sensorPin), rearLeftISR, RISING);
+  attachInterrupt(digitalPinToInterrupt(frontRightWheel.sensorPin), frontRightISR, RISING);
+  attachInterrupt(digitalPinToInterrupt(rearRightWheel.sensorPin), rearRightISR, RISING);
 }
 
 void loop() {
 
-
- if (updateFlag) {
-
-    // Show that a revolution was detected
-    Serial.println("Revolution detected!");  
-
-    // Clear the update flag
-    updateFlag = false;
-    
-    Serial.print("RPM: ");
-    Serial.println(rpm);
-
-    updateCanbus();
-
-  }
-
-  // If reached reading timeout
-  if ((millis() - currentReadingMillis) > timeoutThreshold) {
-
-    // Set last reading to millis()
-    currentReadingMillis = millis();
-
-    // Set rpm to zero
-    rpm = 0;
-    updateFlag = true;
-  }
-
-    // send packet: id is 11 bits, packet can contain up to 8 bytes of data
-  Serial.print("Sending packet ... ");
-
-  CAN.beginPacket(0x96);
-  CAN.print((int)rpm);
-  CAN.endPacket();
-
-  Serial.println("done");
-
-  delay(100);
-
-
+  // updateWheelStatus calculates RPM if applicable, checks zero RPM status, and checks for wheelspin/wheel skid
+  frontLeftWheel.updateWheelStatus();
+  frontRightWheel.updateWheelStatus();
+  rearLeftWheel.updateWheelStatus();
+  rearRightWheel.updateWheelStatus();
 }
 
-void updateRPM() {
-
-  // Set lastReadingMillis to the most recent reading
-  lastReadingMillis = currentReadingMillis;
-
-  // Then, update currentReadingMillis with the reading that triggered this condition
-  currentReadingMillis = millis();
-
-  // Calculate the new RPM value
-  rpm = (1.00 / (float(currentReadingMillis - lastReadingMillis) / 1000.0)) * 60.0 / targetsPerRevolution;
-
-/*
-
-  // FRAMEWORK FOR AVERAGING LAST 10 VALUES:
-
-  // update last readings array
-  lastRpmReadings[rpmArrayIndex] = rpm;
-  if (rpmArrayIndex == (n-1)) {
-    rpmArrayIndex = 0;
-  } else {
-    rpmArrayIndex++;
-  }
-
-  // Calculate average of new set of n values in array
-
-  // Also need to change the variable printed to display in display update function
-
-*/
-
-  updateFlag = true;
+void frontLeftISR() {
+  // Set update flag so calculation is completed after we exit this ISR
+  frontLeftWheel.updateFlag = true;
 }
 
+void rearLeftISR() {
+  // Set update flag so calculation is completed after we exit this ISR
+  rearLeftWheel.updateFlag = true;
+}
 
-void updateCanbus() {
-  
-  // send packet: id is 11 bits, packet can contain up to 8 bytes of data
-  Serial.print("Sending packet ... ");
+void frontRightISR() {
+  // Set update flag so calculation is completed after we exit this ISR
+  frontRightWheel.updateFlag = true;
+}
 
-  CAN.beginPacket(0x96);
-  CAN.print((int)rpm);
-  CAN.endPacket();
-
-  Serial.println("done");
-
-  delay(10);
+void rearRightISR() {
+  // Set update flag so calculation is completed after we exit this ISR
+  rearRightWheel.updateFlag = true;
 }
