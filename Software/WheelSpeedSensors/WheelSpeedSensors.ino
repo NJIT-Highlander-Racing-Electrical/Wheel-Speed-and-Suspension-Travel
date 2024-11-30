@@ -54,8 +54,7 @@ public:
 
   unsigned long lastReadingMillis;
   unsigned long currentReadingMillis;
-  unsigned long expectedNextMillis;  // based on current RPM, when we should expect the next reading
-
+  
   int rpm;  // variable to store calculated RPM value
 
   float wheelSpeedMPH;  // calculated wheel velocity for comparison with GPS vehicle velocity
@@ -72,7 +71,6 @@ public:
     sensorPin = pinNumber;
     lastReadingMillis = 0;
     currentReadingMillis = 0;
-    expectedNextMillis = 0;
     rpm = 0;
     wheelSpeedMPH = 0;
     updateFlag = false;
