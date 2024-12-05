@@ -22,10 +22,10 @@
 
 */
 
-#define frontLeftWheelPin 16;
-#define rearLeftWheelPin 17;
-#define frontRightWheelPin 18;
-#define rearRightWheelPin 19;
+#define frontLeftWheelPin 16
+#define rearLeftWheelPin 17
+#define frontRightWheelPin 18
+#define rearRightWheelPin 19
 
 const float wheelDiameter = 23;      // Diameter of our wheels in inches
 const int targetsPerRevolution = 4;  // number of sensing points per revolution on the wheel
@@ -41,8 +41,15 @@ float vehicleSpeedMPH = 0;  // Since GPS velocity is given in m/s, this converts
 // This means we have 0.243 wheel revolutions per second
 // If we have 4 targets on the wheel, we have a target going by every 1.03 seconds
 // So, If we do not see a reading in 1.25 seconds for example, we know our wheel speed should be zero
-// This comes by doing 1/(0.243 * targetsPerRevolution), plus a small error threshold, say 25%
-const int zeroTimeoutMS = (1.00 / (0.243 * (float)targetsPerRevolution)) * 1.25;
+// This comes by doing 1/(0.243 * targetsPerRevolution), plus a small error threshold, say 25%, and then converting from seconds to ms
+const int zeroTimeoutMS = (1.00 / (0.243 * (float)targetsPerRevolution)) * 1.25 * 1000;
+
+enum WheelState {
+  GOOD,
+  SPIN,
+  SKID
+};
+
 
 
 // Class that defines shared variables and functions between the four wheels
@@ -54,18 +61,16 @@ public:
 
   unsigned long lastReadingMillis;
   unsigned long currentReadingMillis;
-  
+
   int rpm;  // variable to store calculated RPM value
 
   float wheelSpeedMPH;  // calculated wheel velocity for comparison with GPS vehicle velocity
 
   volatile bool updateFlag;  // updateFlag is used to know when to calculate a new RPM
 
-  enum int wheelState {
-    GOOD,
-    SPIN,
-    SKID
-  };
+  bool ignoreNextReading;
+
+  WheelState wheelState;
 
   Wheel(int pinNumber) {
     sensorPin = pinNumber;
@@ -74,6 +79,7 @@ public:
     rpm = 0;
     wheelSpeedMPH = 0;
     updateFlag = false;
+    ignoreNextReading = false;
     wheelState = GOOD;
 
     pinMode(sensorPin, INPUT);
@@ -83,7 +89,19 @@ public:
   // Calculates RPM based on elapsed time between last reading and current time
   // Only runs after respective ISR is triggered
   void calculateRPM() {
+
     if (updateFlag) {
+
+      // If this is true, we were at zero RPM, and we cannot do any calculations with this reading
+      // So, just get the current reading and wait for the next reading
+      if (ignoreNextReading) {
+        ignoreNextReading = false;                        // Reset the flag
+        currentReadingMillis = millis();                  // Mark the current time
+        Serial.print("Ignoring Revolution (from zero)");  // Print a message stating what happened
+        return;                                           // Return to main loop, waiting for an interrupt
+      }
+
+      // Otherwise, continue normally
 
       // Clear the update flag
       updateFlag = false;
@@ -98,7 +116,7 @@ public:
         rpm = (1.00 / (float(currentReadingMillis - lastReadingMillis) / 1000.0)) * 60.0 / targetsPerRevolution;
         wheelSpeedMPH = rpm * rpmToMphFactor;
       } else {
-        Serial.print("Avoided Divide-By-Zero error, not updating rpm value");
+        //Serial.print("Avoided Divide-By-Zero error, not updating rpm value");
         return;
       }
 
@@ -107,6 +125,13 @@ public:
       Serial.print(sensorPin);
       Serial.print("! RPM: ");
       Serial.println(rpm);
+
+      Serial.print("LastReadingMillis: ");
+      Serial.println(lastReadingMillis);
+      Serial.print("CurrentReadingMillis: ");
+      Serial.println(currentReadingMillis);
+      Serial.println();
+      Serial.println();
     }
   }
 
@@ -118,9 +143,11 @@ public:
       // Set last reading to millis() so we can bounce back once another reading is detected
       currentReadingMillis = millis();
 
+      // Set a flag so that we know we cannot do any valuable calculations with the next reading
+      ignoreNextReading = true;
+
       // Set rpm to zero
       rpm = 0;
-      updateFlag = true;
     }
   }
 
@@ -128,7 +155,7 @@ public:
   void checkWheelState() {
     if ((wheelSpeedMPH - vehicleSpeedMPH) > wheelSpinThreshold) {
       wheelState = SPIN;
-    } else if ((wheelSpeedMPH - vehicleSpeedMPH) > -wheelSkidThreshold) {
+    } else if ((wheelSpeedMPH - vehicleSpeedMPH) < -wheelSkidThreshold) {
       wheelState = SKID;
     } else {
       wheelState = GOOD;
@@ -149,24 +176,24 @@ Wheel frontRightWheel(frontRightWheelPin);
 Wheel rearRightWheel(rearRightWheelPin);
 
 void setup() {
-  setupCAN(WHEEL_SPEED);
+  //setupCAN(WHEEL_SPEED);
   Serial.begin(115200);
 
   // If the speed sensor detects a metal, it outputs a HIGH. Otherwise, LOW
   // Thus, we want to trigger interupt on LOW to HIGH transition
   attachInterrupt(digitalPinToInterrupt(frontLeftWheel.sensorPin), frontLeftISR, RISING);
-  attachInterrupt(digitalPinToInterrupt(rearLeftWheel.sensorPin), rearLeftISR, RISING);
-  attachInterrupt(digitalPinToInterrupt(frontRightWheel.sensorPin), frontRightISR, RISING);
-  attachInterrupt(digitalPinToInterrupt(rearRightWheel.sensorPin), rearRightISR, RISING);
+  //attachInterrupt(digitalPinToInterrupt(rearLeftWheel.sensorPin), rearLeftISR, RISING);
+  //attachInterrupt(digitalPinToInterrupt(frontRightWheel.sensorPin), frontRightISR, RISING);
+  //attachInterrupt(digitalPinToInterrupt(rearRightWheel.sensorPin), rearRightISR, RISING);
 }
 
 void loop() {
 
   // updateWheelStatus calculates RPM if applicable, checks zero RPM status, and checks for wheelspin/wheel skid
   frontLeftWheel.updateWheelStatus();
-  frontRightWheel.updateWheelStatus();
-  rearLeftWheel.updateWheelStatus();
-  rearRightWheel.updateWheelStatus();
+  //frontRightWheel.updateWheelStatus();
+  //rearLeftWheel.updateWheelStatus();
+  //rearRightWheel.updateWheelStatus();
 }
 
 void frontLeftISR() {
