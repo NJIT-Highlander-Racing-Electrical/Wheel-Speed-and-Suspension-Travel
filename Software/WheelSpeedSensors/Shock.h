@@ -43,6 +43,8 @@ public:
 
     // Get initial analog reading
     reading = analogRead(sensorPin);
+    delay(2);
+    reading = analogRead(sensorPin);
 
     // Converts analog value into heim-to-heim length
     length = mapfloat(reading, compressedReading, extendedReading, compressedLength, extendedLength);
@@ -50,10 +52,6 @@ public:
     // Maps heim-to-heim length to wheel displacement
     // Works in 0.1" increments, so multiply the float by ten and cast to an int (e.g. 3.1" becomes int 31)
     distance = lengthToDisplacement((int)(length * 10));
-
-    Serial.print(millis());
-    Serial.print(",");
-    Serial.println(reading);
   }
 
   // Function for float mapping

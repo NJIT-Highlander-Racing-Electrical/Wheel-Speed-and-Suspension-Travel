@@ -66,10 +66,10 @@ public:
       // If this is true, we were at zero RPM, and we cannot do any calculations with this reading
       // So, just get the current reading and wait for the next reading
       if (ignoreNextReading) {
-        ignoreNextReading = false;                        // Reset the flag
-        currentReadingMillis = millis();                  // Mark the current time
-        Serial.print("Ignoring Revolution (from zero)");  // Print a message stating what happened
-        return;                                           // Return to main loop, waiting for an interrupt
+        ignoreNextReading = false;                          // Reset the flag
+        currentReadingMillis = millis();                    // Mark the current time
+        Serial.println("Ignoring Revolution (from zero)");  // Print a message stating what happened
+        return;                                             // Return to main loop, waiting for an interrupt
       }
 
       // Otherwise, continue normally
@@ -91,18 +91,6 @@ public:
         return;
       }
 
-
-      Serial.print("Revolution detected on pin ");
-      Serial.print(sensorPin);
-      Serial.print("! RPM: ");
-      Serial.println(rpm);
-
-      Serial.print("LastReadingMillis: ");
-      Serial.println(lastReadingMillis);
-      Serial.print("CurrentReadingMillis: ");
-      Serial.println(currentReadingMillis);
-      Serial.println();
-      Serial.println();
     }
   }
 

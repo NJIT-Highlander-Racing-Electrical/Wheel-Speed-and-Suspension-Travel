@@ -12,6 +12,13 @@
 *
 */
 
+#define DEBUG_WHEEL true
+#define DebugWheelSerial \
+  if (DEBUG_WHEEL) Serial
+
+#define DEBUG_SHOCK false
+#define DebugShockSerial \
+  if (DEBUG_SHOCK) Serial
 
 #define frontLeftWheelPin 16
 #define rearLeftWheelPin 17
@@ -43,27 +50,54 @@ void setup() {
   // If the speed sensor detects a metal, it outputs a HIGH. Otherwise, LOW
   // Thus, we want to trigger interupt on LOW to HIGH transition
   attachInterrupt(digitalPinToInterrupt(frontLeftWheel.sensorPin), frontLeftISR, RISING);
-  //attachInterrupt(digitalPinToInterrupt(rearLeftWheel.sensorPin), rearLeftISR, RISING);
-  //attachInterrupt(digitalPinToInterrupt(frontRightWheel.sensorPin), frontRightISR, RISING);
-  //attachInterrupt(digitalPinToInterrupt(rearRightWheel.sensorPin), rearRightISR, RISING);
+  attachInterrupt(digitalPinToInterrupt(rearLeftWheel.sensorPin), rearLeftISR, RISING);
+  attachInterrupt(digitalPinToInterrupt(frontRightWheel.sensorPin), frontRightISR, RISING);
+  attachInterrupt(digitalPinToInterrupt(rearRightWheel.sensorPin), rearRightISR, RISING);
 }
 
 void loop() {
 
   // updateWheelStatus calculates RPM if applicable, checks zero RPM status, and checks for wheelspin/wheel skid
   frontLeftWheel.updateWheelStatus();
-  //frontRightWheel.updateWheelStatus();
-  //rearLeftWheel.updateWheelStatus();
-  //rearRightWheel.updateWheelStatus();
+  frontRightWheel.updateWheelStatus();
+  rearLeftWheel.updateWheelStatus();
+  rearRightWheel.updateWheelStatus();
+
+  DebugWheelSerial.print("frontLeftWheel_RPM:");
+  DebugWheelSerial.print(frontLeftWheel.rpm);
+  DebugWheelSerial.print(",");
+  DebugWheelSerial.print("frontRightWheel_RPM:");
+  DebugWheelSerial.print(frontRightWheel.rpm);
+  DebugWheelSerial.print(",");
+  DebugWheelSerial.print("rearLeftWheel_RPM:");
+  DebugWheelSerial.print(rearLeftWheel.rpm);
+  DebugWheelSerial.print(",");
+  DebugWheelSerial.print("rearRightWheel_RPM:");
+  DebugWheelSerial.print(rearRightWheel.rpm);
+  DebugWheelSerial.println();
 
   frontLeftShock.getPosition();
-  //frontRightShock.getPosition();
-  //rearLeftShock.getPosition();
-  // rearRightShock.getPosition();
+  frontRightShock.getPosition();
+  frontRightShock.getPosition();
+  rearRightShock.getPosition();
+
+  DebugShockSerial.print("frontLeftShock_Position:");
+  DebugShockSerial.print(frontLeftShock.reading);
+  DebugShockSerial.print(",");
+  DebugShockSerial.print("frontRightShock_Position:");
+  DebugShockSerial.print(frontRightShock.reading);
+  DebugShockSerial.print(",");
+  DebugShockSerial.print("rearLeftShock_Position:");
+  DebugShockSerial.print(rearLeftShock.reading);
+  DebugShockSerial.print(",");
+  DebugShockSerial.print("rearRightShock_Position:");
+  DebugShockSerial.print(rearRightShock.reading);
+  DebugShockSerial.println();
 }
 
 void frontLeftISR() {
   // Set update flag so calculation is completed after we exit this ISR
+
   frontLeftWheel.updateFlag = true;
 }
 
