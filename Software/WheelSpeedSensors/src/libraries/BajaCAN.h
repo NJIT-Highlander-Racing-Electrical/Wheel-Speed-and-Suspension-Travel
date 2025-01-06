@@ -1,6 +1,6 @@
 /*********************************************************************************
 *   
-*   BajaCAN.h  -- Version 1.2.1 
+*   BajaCAN.h  -- Version 1.2.5 
 * 
 *   The goal of this BajaCAN header/driver is to enable all subsystems throughout
 *   the vehicle to use the same variables, data types, and functions. That way,
@@ -213,10 +213,10 @@ int rearLeftWheelRPM;
 int rearRightWheelRPM;
 
 // Wheel States
-const int frontLeftWheelState;
-const int frontRightWheelState;
-const int rearLeftWheelState;
-const int rearRightWheelState;
+int frontLeftWheelState;
+int frontRightWheelState;
+int rearLeftWheelState;
+int rearRightWheelState;
 
 // Pedal Sensors CAN
 int gasPedalPercentage;
@@ -252,12 +252,12 @@ bool sdLoggingActive;
 int batteryPercentage;
 
 // Status Bits
-const int statusCVT;
-const int statusBaseStation;
-const int statusDashboard;
-const int statusDAS;
-const int statusWheels;
-const int statusPedals;
+int statusCVT;
+int statusBaseStation;
+int statusDashboard;
+int statusDAS;
+int statusWheels;
+int statusPedals;
 
 // Declaraction for CAN_Task_Code second core program
 void CAN_Task_Code(void* pvParameters);
@@ -551,12 +551,12 @@ void CAN_Task_Code(void* pvParameters) {
           CAN.print(secondaryRPM);
           CAN.endPacket();
 
-          CAN.beginPacket(cvtPrimaryTemperature_ID);
-          CAN.print(cvtPrimaryTemperature);
+          CAN.beginPacket(primaryTemperature_ID);
+          CAN.print(primaryTemperature);
           CAN.endPacket();
 
-          CAN.beginPacket(cvtSecondaryTemperature_ID);
-          CAN.print(cvtSecondaryTemperature);
+          CAN.beginPacket(secondaryTemperature_ID);
+          CAN.print(secondaryTemperature);
           CAN.endPacket();
 
           break;
@@ -569,7 +569,7 @@ void CAN_Task_Code(void* pvParameters) {
           CAN.endPacket();
 
           CAN.beginPacket(frontRightWheelRPM_ID);
-          CAN.print(frontRightWheelRPM;
+          CAN.print(frontRightWheelRPM);
           CAN.endPacket();
 
           CAN.beginPacket(rearLeftWheelRPM_ID);
@@ -593,8 +593,8 @@ void CAN_Task_Code(void* pvParameters) {
           CAN.print(rearLeftWheelState);
           CAN.endPacket();
 
-          CAN.beginPacket(rearRightWheelSpeed_ID);
-          CAN.print(rearRightWheelSpeed);
+          CAN.beginPacket(rearRightWheelState_ID);
+          CAN.print(rearRightWheelState);
           CAN.endPacket();
 
           // SUSPENSION DISPLACEMENTS
@@ -697,8 +697,8 @@ void CAN_Task_Code(void* pvParameters) {
           CAN.print(gpsVelocity);
           CAN.endPacket();
 
-          CAN.beginPacket(sdDataLoggingActive_ID);
-          CAN.print(sdDataLoggingActive);
+          CAN.beginPacket(sdLoggingActive_ID);
+          CAN.print(sdLoggingActive);
           CAN.endPacket();
 
           CAN.beginPacket(batteryPercentage_ID);
@@ -717,5 +717,4 @@ void CAN_Task_Code(void* pvParameters) {
       }
     }
   }
-}
 }
