@@ -1,6 +1,6 @@
 /*********************************************************************************
 *   
-*   BajaCAN.h  -- Version 1.2.8 
+*   BajaCAN.h  -- Version 1.2.9 
 * 
 *   The goal of this BajaCAN header/driver is to enable all subsystems throughout
 *   the vehicle to use the same variables, data types, and functions. That way,
@@ -252,12 +252,12 @@ bool sdLoggingActive;
 int batteryPercentage;
 
 // Status Bits
-int statusCVT;
-int statusBaseStation;
-int statusDashboard;
-int statusDAS;
-int statusWheels;
-int statusPedals;
+uint8_t statusCVT;
+uint8_t statusBaseStation;
+uint8_t statusDashboard;
+uint8_t statusDAS;
+uint8_t statusWheels;
+uint8_t statusPedals;
 
 // Declaraction for CAN_Task_Code second core program
 void CAN_Task_Code(void* pvParameters);
@@ -508,10 +508,69 @@ void CAN_Task_Code(void* pvParameters) {
 
       // Status Bit Case
       case statusCVT_ID:
-        statusCVT = CAN.parseInt();
+
+        // If this packet was a RTR and we are the proper recipient, return the requested data
+        if (CAN.packetRtr() && (currentSubsystem == CVT)) {
+          CAN.beginPacket(statusCVT_ID);
+          CAN.print(statusCVT);
+          CAN.endPacket();
+        }
+        // Otherwise just save the data to our variable
+        else {
+          statusCVT = CAN.parseInt();
+          Serial.print("statusCVT:");
+          Serial.println(statusCVT);
+        }
         break;
 
-      // Status Bit Case
+
+
+        // Status Bit Cases
+
+        // If this packet was a RTR and we are the proper recipient, return the requested data
+        if (CAN.packetRtr() && (currentSubsystem == DAS)) {
+          CAN.beginPacket(statusDAS_ID);
+          CAN.print(statusDAS);
+          CAN.endPacket();
+        }
+        // Otherwise just save the data to our variable
+        else {
+          statusDAS = CAN.parseInt();
+          Serial.print("statusDAS:");
+          Serial.println(statusDAS);
+        }
+        break;
+
+        // If this packet was a RTR and we are the proper recipient, return the requested data
+        if (CAN.packetRtr() && (currentSubsystem == WHEEL_SPEED)) {
+          CAN.beginPacket(statusWheels_ID);
+          CAN.print(statusWheels);
+          CAN.endPacket();
+        }
+        // Otherwise just save the data to our variable
+        else {
+          statusWheels = CAN.parseInt();
+          Serial.print("statusWheels:");
+          Serial.println(statusWheels);
+        }
+        break;
+
+        // If this packet was a RTR and we are the proper recipient, return the requested data
+        if (CAN.packetRtr() && (currentSubsystem == PEDALS)) {
+          CAN.beginPacket(statusPedals_ID);
+          CAN.print(statusPedals);
+          CAN.endPacket();
+        }
+        // Otherwise just save the data to our variable
+        else {
+          statusPedals = CAN.parseInt();
+          Serial.print("statusPedals:");
+          Serial.println(statusPedals);
+        }
+        break;
+        /*
+
+        // Status Bit Case
       case statusBaseStation_ID:
         statusBaseStation = CAN.parseInt();
         break;
@@ -520,27 +579,16 @@ void CAN_Task_Code(void* pvParameters) {
       case statusDashboard_ID:
         statusDashboard = CAN.parseInt();
         break;
-
-      // Status Bit Case
-      case statusDAS_ID:
-        statusDAS = CAN.parseInt();
-        break;
-
-      // Status Bit Case
-      case statusWheels_ID:
-        statusWheels = CAN.parseInt();
-        break;
-
-      // Status Bit Case
-      case statusPedals_ID:
-        statusPedals = CAN.parseInt();
-        break;
+        */
     }
 
 
     if ((millis() - lastCanSendTime) > canSendInterval) {
 
       lastCanSendTime = millis();
+
+      // The following delay is placed before anything is sent so that any RTR's we send will be received back without issue
+      delay(canSendInterval / 2);  // Delay for half of our send interval. This should allow Watchdog to reset during IDLE without interfering with the functionality of the program. For the default interval (100ms), we provide a 50ms delay
 
       switch (currentSubsystem) {
 
@@ -582,7 +630,7 @@ void CAN_Task_Code(void* pvParameters) {
           CAN.print(rearRightWheelRPM);
           CAN.endPacket();
 
-        // WHEEL STATES
+          // WHEEL STATES
           CAN.beginPacket(frontLeftWheelState_ID);
           CAN.print(frontLeftWheelState);
           CAN.endPacket();
@@ -614,6 +662,19 @@ void CAN_Task_Code(void* pvParameters) {
 
           CAN.beginPacket(rearRightDisplacement_ID);
           CAN.print(rearRightDisplacement);
+          CAN.endPacket();
+
+          // Eventually, all of these should be moved to base station section for the status LEDs on there
+          CAN.beginPacket(statusCVT_ID, 2, true);
+          CAN.endPacket();
+
+          CAN.beginPacket(statusWheels_ID, 2, true);
+          CAN.endPacket();
+
+          CAN.beginPacket(statusPedals_ID, 2, true);
+          CAN.endPacket();
+
+          CAN.beginPacket(statusDAS_ID, 2, true);
           CAN.endPacket();
 
           break;
@@ -717,9 +778,6 @@ void CAN_Task_Code(void* pvParameters) {
           // Code for Base Station messages, if any, would go here
           break;
       }
-
-      
-  delay(canSendInterval/2); // Delay for half of our send interval. This should allow Watchdog to reset during IDLE without interfering with the functionality of the program. For the default interval (100ms), we provide a 50ms delay.
     }
   }
 }

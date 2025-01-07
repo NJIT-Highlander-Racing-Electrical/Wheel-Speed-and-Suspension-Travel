@@ -45,7 +45,7 @@ Shock rearRightShock(rearRightShockPin);
 
 void setup() {
   setupCAN(WHEEL_SPEED);
-  Serial.begin(500000);
+  Serial.begin(115200);
 
   // If the speed sensor detects a metal, it outputs a HIGH. Otherwise, LOW
   // Thus, we want to trigger interupt on LOW to HIGH transition
@@ -93,6 +93,7 @@ void loop() {
   DebugShockSerial.print("rearRightShock_Position:");
   DebugShockSerial.print(rearRightShock.reading);
   DebugShockSerial.println();
+
 }
 
 void frontLeftISR() {
