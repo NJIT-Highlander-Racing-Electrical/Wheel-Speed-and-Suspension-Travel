@@ -44,7 +44,7 @@ Shock frontRightShock(frontRightShockPin);
 Shock rearRightShock(rearRightShockPin);
 
 void setup() {
-  //setupCAN(WHEEL_SPEED);
+  setupCAN(WHEEL_SPEED);
   Serial.begin(500000);
 
   // If the speed sensor detects a metal, it outputs a HIGH. Otherwise, LOW
