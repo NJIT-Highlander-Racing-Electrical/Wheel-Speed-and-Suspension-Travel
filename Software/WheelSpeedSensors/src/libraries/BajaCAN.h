@@ -1,6 +1,6 @@
 /*********************************************************************************
 *   
-*   BajaCAN.h  -- Version 1.2.5 
+*   BajaCAN.h  -- Version 1.2.7 
 * 
 *   The goal of this BajaCAN header/driver is to enable all subsystems throughout
 *   the vehicle to use the same variables, data types, and functions. That way,
@@ -539,6 +539,8 @@ void CAN_Task_Code(void* pvParameters) {
 
 
     if ((millis() - lastCanSendTime) > canSendInterval) {
+
+      lastCanSendTime = millis();
 
       switch (currentSubsystem) {
 

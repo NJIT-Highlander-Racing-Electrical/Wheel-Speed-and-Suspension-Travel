@@ -93,16 +93,6 @@ void loop() {
   DebugShockSerial.print("rearRightShock_Position:");
   DebugShockSerial.print(rearRightShock.reading);
   DebugShockSerial.println();
-
-
-  Serial.print("CVT Primary RPM: ");
-  Serial.println(primaryRPM);
-  Serial.print("CVT Secondary RPM: ");
-  Serial.println(secondaryRPM);
-  Serial.print("CVT Primary Temperature: ");
-  Serial.println(primaryTemperature);
-  Serial.print("CVT Secondary Temperature: ");
-  Serial.println(secondaryTemperature);
 }
 
 void frontLeftISR() {
