@@ -12,11 +12,11 @@
 *
 */
 
-#define DEBUG_WHEEL true
+#define DEBUG_WHEEL false
 #define DebugWheelSerial \
   if (DEBUG_WHEEL) Serial
 
-#define DEBUG_SHOCK false
+#define DEBUG_SHOCK true
 #define DebugShockSerial \
   if (DEBUG_SHOCK) Serial
 
@@ -45,7 +45,7 @@ Shock rearRightShock(rearRightShockPin);
 
 void setup() {
   setupCAN(WHEEL_SPEED);
-  Serial.begin(115200);
+  Serial.begin(460800);
 
   // If the speed sensor detects a metal, it outputs a HIGH. Otherwise, LOW
   // Thus, we want to trigger interupt on LOW to HIGH transition
@@ -56,6 +56,8 @@ void setup() {
 }
 
 void loop() {
+
+  checkStatus(); // Checks status of all systems for error reporting to Base Station
 
   // updateWheelStatus calculates RPM if applicable, checks zero RPM status, and checks for wheelspin/wheel skid
   frontLeftWheel.updateWheelStatus();

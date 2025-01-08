@@ -1,6 +1,6 @@
 /*********************************************************************************
 *   
-*   BajaCAN.h  -- Version 1.2.10 
+*   BajaCAN.h  -- Version 1.2.11 
 * 
 *   The goal of this BajaCAN header/driver is to enable all subsystems throughout
 *   the vehicle to use the same variables, data types, and functions. That way,
@@ -535,8 +535,10 @@ void CAN_Task_Code(void* pvParameters) {
             CAN.beginPacket(statusDAS_ID);
             CAN.print(statusDAS);
             CAN.endPacket();
+          } else if (CAN.packetRtr() && currentSubsystem != DAS) {
+            // We received an RTR but we are not the intended recipient, don't do anything
           }
-          // Otherwise just save the data to our variable
+          // Otherwise if it was not an RTR just save the data to our variable
           else {
             statusDAS = CAN.parseInt();
           }
@@ -549,8 +551,10 @@ void CAN_Task_Code(void* pvParameters) {
             CAN.beginPacket(statusWheels_ID);
             CAN.print(statusWheels);
             CAN.endPacket();
+          } else if (CAN.packetRtr() && currentSubsystem != WHEEL_SPEED) {
+            // We received an RTR but we are not the intended recipient, don't do anything
           }
-          // Otherwise just save the data to our variable
+          // Otherwise if it was not an RTR just save the data to our variable
           else {
             statusWheels = CAN.parseInt();
           }
@@ -563,8 +567,10 @@ void CAN_Task_Code(void* pvParameters) {
             CAN.beginPacket(statusPedals_ID);
             CAN.print(statusPedals);
             CAN.endPacket();
+          } else if (CAN.packetRtr() && currentSubsystem != PEDALS) {
+            // We received an RTR but we are not the intended recipient, don't do anything
           }
-          // Otherwise just save the data to our variable
+          // Otherwise if it was not an RTR just save the data to our variable
           else {
             statusPedals = CAN.parseInt();
           }
@@ -781,8 +787,8 @@ void CAN_Task_Code(void* pvParameters) {
           break;
       }
 
-      
-  delay(canSendInterval/2); // Delay for half of our send interval. This should allow Watchdog to reset during IDLE without interfering with the functionality of the program. For the default interval (100ms), we provide a 50ms delay.
+
+      delay(canSendInterval / 2);  // Delay for half of our send interval. This should allow Watchdog to reset during IDLE without interfering with the functionality of the program. For the default interval (100ms), we provide a 50ms delay.
     }
   }
 }
