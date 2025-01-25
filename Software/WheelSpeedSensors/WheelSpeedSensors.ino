@@ -12,7 +12,7 @@
 *
 */
 
-#define DEBUG_WHEEL false
+#define DEBUG_WHEEL true
 #define DebugWheelSerial \
   if (DEBUG_WHEEL) Serial
 
@@ -57,13 +57,32 @@ void setup() {
 
 void loop() {
 
-  checkStatus(); // Checks status of all systems for error reporting to Base Station
+  checkStatus();  // Checks status of all systems for error reporting to Base Station
 
   // updateWheelStatus calculates RPM if applicable, checks zero RPM status, and checks for wheelspin/wheel skid
   frontLeftWheel.updateWheelStatus();
   frontRightWheel.updateWheelStatus();
   rearLeftWheel.updateWheelStatus();
   rearRightWheel.updateWheelStatus();
+
+  // update CAN-Bus variables
+
+  frontLeftWheelRPM = frontLeftWheel.rpm;
+  frontRightWheelRPM = frontRightWheel.rpm;
+  rearLeftWheelRPM = rearLeftWheel.rpm;
+  rearRightWheelRPM = rearRightWheel.rpm;
+
+  frontLeftWheelState = frontLeftWheel.wheelState;
+  frontRightWheelState = frontRightWheel.wheelState;
+  rearLeftWheelState = rearLeftWheel.wheelState;
+  rearRightWheelState = rearRightWheel.wheelState;
+
+  frontLeftDisplacement = frontLeftShock.reading; // These four must become displacement eventually once we have LookupTable configured
+  frontRightDisplacement = frontRightShock.reading;
+  rearLeftDisplacement = rearLeftShock.reading;
+  rearRightDisplacement = rearRightShock.reading;
+
+  // Print data to serial monitor
 
   DebugWheelSerial.print("frontLeftWheel_RPM:");
   DebugWheelSerial.print(frontLeftWheel.rpm);
@@ -95,7 +114,6 @@ void loop() {
   DebugShockSerial.print("rearRightShock_Position:");
   DebugShockSerial.print(rearRightShock.reading);
   DebugShockSerial.println();
-
 }
 
 void frontLeftISR() {
