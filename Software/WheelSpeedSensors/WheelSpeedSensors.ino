@@ -99,7 +99,7 @@ void loop() {
 
   frontLeftShock.getPosition();
   frontRightShock.getPosition();
-  frontRightShock.getPosition();
+  rearLeftShock.getPosition();
   rearRightShock.getPosition();
 
   DebugShockSerial.print("frontLeftShock_Position:");
