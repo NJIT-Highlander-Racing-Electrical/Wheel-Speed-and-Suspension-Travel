@@ -26,6 +26,10 @@ If one or more permanent magnets are attached to the wheel, we can use a hall ef
 
 These could be used to detect when a white stripe passes by the emitter/receiver pair (like the CVT tachometer), but dirt, mud, and other substances can cover the sensors or the sensing target.
 
-## Electrical Design
+# Suspension Travel Sensors
 
-These four sensors can be run to a single microcontroller located inside the vehicle, which can then transmit the data over CAN. Ideally, each sensor reading is interrupt-based on the microcontroller so that calculations for RPM can be done as fast as possible. Each sensor should have connectors so that it can easily be removed from the microcontroller/enclosure if needed. We will be using 3 pin aviation plug connectors to stay uniform in our connector types while preventing the ports from being mixed up with the 4-pin CAN/PWR connectors.
+The 2024-2025 vehicle will also be integrating four linear suspension travel sensors. These will give an analog reading which represents the linear position of the shocks. We can then use this data to extrapolate the displacement of the wheels. We are using the LPPS-22-200 sensors from HGSI which have a 200mm stroke. They are essentially just a linear potentiometer, so they can be used with a variety of supply voltages.
+
+# Electrical Design
+
+These eight sensors (four wheel speed and four suspension travel) can be run to a single microcontroller located inside the vehicle, which can then transmit the data over CAN. Ideally, each wheel speed sensor reading is interrupt-based on the microcontroller so that calculations for RPM can be done as fast as possible. Suspension travel are analog so we will simply poll those for values Each sensor (at the enclosure side) has 3 pin aviation plug connectors. This prevents them from accidentally being connected to the general power/CAN bus while still maintaing our aviation plug standard. At the sensor side, each sensor uses a different, smaller in-line 3 pin connector so that the sensors themselves can be removed and replaced without removing the entire wiring harness.
