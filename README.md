@@ -30,6 +30,10 @@ These could be used to detect when a white stripe passes by the emitter/receiver
 
 The 2024-2025 vehicle will also be integrating four linear suspension travel sensors. These will give an analog reading which represents the linear position of the shocks. We can then use this data to extrapolate the displacement of the wheels. We are using the LPPS-22-200 sensors from HGSI which have a 200mm stroke. They are essentially just a linear potentiometer, so they can be used with a variety of supply voltages.
 
+## Mapping Suspension Position to Wheel Displacement
+
+Fron two shocks have a motion ratio of 0.75, meaning that a travel 0f 0.75" in the shock would correspond to 1" of wheel displacement
+
 # Electrical Design
 
 These eight sensors (four wheel speed and four suspension travel) can be run to a single microcontroller located inside the vehicle, which can then transmit the data over CAN. Ideally, each wheel speed sensor reading is interrupt-based on the microcontroller so that calculations for RPM can be done as fast as possible. Suspension travel are analog so we will simply poll those for values Each sensor (at the enclosure side) has 3 pin aviation plug connectors. This prevents them from accidentally being connected to the general power/CAN bus while still maintaing our aviation plug standard. At the sensor side, each sensor uses a different, smaller in-line 3 pin connector so that the sensors themselves can be removed and replaced without removing the entire wiring harness.
