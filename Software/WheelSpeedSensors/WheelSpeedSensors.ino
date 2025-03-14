@@ -20,28 +20,30 @@
 #define DebugShockSerial \
   if (DEBUG_SHOCK) Serial
 
-#define frontLeftWheelPin 16
-#define rearLeftWheelPin 17
-#define frontRightWheelPin 18
-#define rearRightWheelPin 19
 
-#define frontLeftShockPin 13
-#define rearLeftShockPin 33
-#define frontRightShockPin 27
-#define rearRightShockPin 32
+// Pin definitions for Wheels
+const int frontLeftWheelPin = 16;
+const int rearLeftWheelPin = 17;
+const int frontRightWheelPin = 18;
+const int rearRightWheelPin = 19;
 
+// Pin definitions for Shocks
+const int frontLeftShockPin = 13;
+const int rearLeftShockPin = 33;
+const int frontRightShockPin = 27;
+const int rearRightShockPin = 32;
 
 // Wheel objects from Wheel.h definition
 Wheel frontLeftWheel(frontLeftWheelPin);
-Wheel rearLeftWheel(rearLeftWheelPin);
 Wheel frontRightWheel(frontRightWheelPin);
+Wheel rearLeftWheel(rearLeftWheelPin);
 Wheel rearRightWheel(rearRightWheelPin);
 
 // Shock objects from Shock.h definition
-Shock frontLeftShock(frontLeftShockPin);
-Shock rearLeftShock(rearLeftShockPin);
-Shock frontRightShock(frontRightShockPin);
-Shock rearRightShock(rearRightShockPin);
+Shock frontLeftShock(frontLeftShockPin, true, frontLeftShock_restReading);
+Shock frontRightShock(frontRightShockPin, true, frontRightShock_restReading);
+Shock rearLeftShock(rearLeftShockPin, false, rearLeftShock_restReading);
+Shock rearRightShock(rearRightShockPin, false, rearRightShock_restReading);
 
 void setup() {
   setupCAN(WHEEL_SPEED);
@@ -50,8 +52,8 @@ void setup() {
   // If the speed sensor detects a metal, it outputs a HIGH. Otherwise, LOW
   // Thus, we want to trigger interupt on LOW to HIGH transition
   attachInterrupt(digitalPinToInterrupt(frontLeftWheel.sensorPin), frontLeftISR, RISING);
-  attachInterrupt(digitalPinToInterrupt(rearLeftWheel.sensorPin), rearLeftISR, RISING);
   attachInterrupt(digitalPinToInterrupt(frontRightWheel.sensorPin), frontRightISR, RISING);
+  attachInterrupt(digitalPinToInterrupt(rearLeftWheel.sensorPin), rearLeftISR, RISING);
   attachInterrupt(digitalPinToInterrupt(rearRightWheel.sensorPin), rearRightISR, RISING);
 }
 
@@ -77,7 +79,7 @@ void loop() {
   rearLeftWheelState = rearLeftWheel.wheelState;
   rearRightWheelState = rearRightWheel.wheelState;
 
-  frontLeftDisplacement = frontLeftShock.reading; // These four must become displacement eventually once we have LookupTable configured
+  frontLeftDisplacement = frontLeftShock.reading;  // These four must become displacement eventually once we have LookupTable configured
   frontRightDisplacement = frontRightShock.reading;
   rearLeftDisplacement = rearLeftShock.reading;
   rearRightDisplacement = rearRightShock.reading;
@@ -102,16 +104,16 @@ void loop() {
   rearLeftShock.getPosition();
   rearRightShock.getPosition();
 
-  DebugShockSerial.print("frontLeftShock_Position:");
+  DebugShockSerial.print("frontLeftShock_reading:");
   DebugShockSerial.print(frontLeftShock.reading);
   DebugShockSerial.print(",");
-  DebugShockSerial.print("frontRightShock_Position:");
+  DebugShockSerial.print("frontRightShock_reading:");
   DebugShockSerial.print(frontRightShock.reading);
   DebugShockSerial.print(",");
-  DebugShockSerial.print("rearLeftShock_Position:");
+  DebugShockSerial.print("rearLeftShock_reading:");
   DebugShockSerial.print(rearLeftShock.reading);
   DebugShockSerial.print(",");
-  DebugShockSerial.print("rearRightShock_Position:");
+  DebugShockSerial.print("rearRightShock_reading:");
   DebugShockSerial.print(rearRightShock.reading);
   DebugShockSerial.println();
 }
@@ -122,14 +124,15 @@ void frontLeftISR() {
   frontLeftWheel.updateFlag = true;
 }
 
-void rearLeftISR() {
-  // Set update flag so calculation is completed after we exit this ISR
-  rearLeftWheel.updateFlag = true;
-}
-
 void frontRightISR() {
   // Set update flag so calculation is completed after we exit this ISR
   frontRightWheel.updateFlag = true;
+}
+
+
+void rearLeftISR() {
+  // Set update flag so calculation is completed after we exit this ISR
+  rearLeftWheel.updateFlag = true;
 }
 
 void rearRightISR() {
