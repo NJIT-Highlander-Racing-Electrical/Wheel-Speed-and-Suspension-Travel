@@ -1,6 +1,6 @@
 /*********************************************************************************
 *   
-*   BajaCAN.h  -- Version 1.2.12 
+*   BajaCAN.h  -- Version 1.2.14
 * 
 *   The goal of this BajaCAN header/driver is to enable all subsystems throughout
 *   the vehicle to use the same variables, data types, and functions. That way,
@@ -314,7 +314,7 @@ void CAN_Task_Code(void* pvParameters) {
     int packetSize = CAN.parsePacket();
     int packetId;
 
-    if ((packetSize || CAN.packetId() != -1) && (packetSize != 0)) {
+    if ((packetSize > 0) || (CAN.packetRtr() && CAN.packetId() != -1)) {
       // received a packet
       packetId = CAN.packetId();  // Get the packet ID
 
@@ -429,7 +429,7 @@ void CAN_Task_Code(void* pvParameters) {
 
         // DAS Gyro Case
         case gyroscopeRoll_ID:
-          accelerationX = CAN.parseFloat();
+          gyroscopeRoll = CAN.parseFloat();
           break;
 
         // DAS Gyro Case
@@ -753,10 +753,6 @@ void CAN_Task_Code(void* pvParameters) {
           CAN.print(gpsVelocity);
           CAN.endPacket();
 
-          CAN.beginPacket(sdLoggingActive_ID);
-          CAN.print(sdLoggingActive);
-          CAN.endPacket();
-
           CAN.beginPacket(batteryPercentage_ID);
           CAN.print(batteryPercentage);
           CAN.endPacket();
@@ -764,7 +760,9 @@ void CAN_Task_Code(void* pvParameters) {
 
 
         case DASHBOARD:
-          // Code for Dashboard messages, if any, would go here
+          CAN.beginPacket(sdLoggingActive_ID);
+          CAN.print(sdLoggingActive);
+          CAN.endPacket();
           break;
 
         case BASE_STATION:
