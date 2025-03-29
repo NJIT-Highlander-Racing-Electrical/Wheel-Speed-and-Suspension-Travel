@@ -18,7 +18,8 @@ const int rearLeftShock_restReading = 2048;
 const int rearRightShock_restReading = 2048;
 
 // The number of analogRead integer steps that is linearly related to inches traveled of sensor
-const int analogValPerInch = -1;
+// Experimentally found 7 inches of travel went from 48 to 4010 which is 566 analog units per inch
+const int analogValPerInch = 566;
 
 // Class that defines shared variables and functions between the four wheels
 class Shock {
@@ -26,7 +27,6 @@ class Shock {
 private:
 
   bool frontShock;  // Set true if the given shock is on the front of the car, otherwise false
-  int reading;      // Analog reading value from ESP32
   int sensorPin;    // GPIO that sensor is hooked up to
   int restReading;  // Position of the given shock while the vehicle is at rest/ride height
   float shockPos;   // Inches that shock has traveled from rest position
@@ -34,7 +34,8 @@ private:
 
 public:
 
-  float wheelPos;   // Inches that wheel has traveled from rest position
+  float wheelPos;  // Inches that wheel has traveled from rest position
+  int reading;     // Analog reading value from ESP32
 
   Shock(int pinNumber, bool isFrontShock, int restPositionVal) {
     sensorPin = pinNumber;
@@ -54,8 +55,8 @@ public:
     delay(2);
     reading = analogRead(sensorPin);
 
-    if (analogValPerInch == -1) {
-      Serial.println("You forgot to set the analogValPerInch to something useful dummy");
+    if (frontLeftShock_restReading == 2048) {
+      Serial.println("UPDATE THE DAMN REST READINGS");
     }
 
     // Convert reading to inches that sensor has traveled from rest

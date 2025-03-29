@@ -79,10 +79,10 @@ void loop() {
   rearLeftWheelState = rearLeftWheel.wheelState;
   rearRightWheelState = rearRightWheel.wheelState;
 
-  frontLeftDisplacement = frontLeftShock.reading;  // These four must become displacement eventually once we have LookupTable configured
-  frontRightDisplacement = frontRightShock.reading;
-  rearLeftDisplacement = rearLeftShock.reading;
-  rearRightDisplacement = rearRightShock.reading;
+  frontLeftDisplacement = frontLeftShock.wheelPos;  // These four must become displacement eventually once we have LookupTable configured
+  frontRightDisplacement = frontRightShock.wheelPos;
+  rearLeftDisplacement = rearLeftShock.wheelPos;
+  rearRightDisplacement = rearRightShock.wheelPos;
 
   // Print data to serial monitor
 
