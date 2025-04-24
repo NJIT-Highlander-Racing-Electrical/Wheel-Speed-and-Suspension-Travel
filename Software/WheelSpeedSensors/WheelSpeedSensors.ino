@@ -22,16 +22,16 @@
 
 
 // Pin definitions for Wheels
-const int frontLeftWheelPin = 16;
-const int rearLeftWheelPin = 17;
-const int frontRightWheelPin = 18;
-const int rearRightWheelPin = 19;
+const int frontLeftWheelPin = 19;
+const int rearLeftWheelPin = 18;
+const int frontRightWheelPin = 17;
+const int rearRightWheelPin = 16;
 
 // Pin definitions for Shocks
-const int frontLeftShockPin = 13;
-const int rearLeftShockPin = 33;
-const int frontRightShockPin = 27;
-const int rearRightShockPin = 32;
+const int frontLeftShockPin = 32;
+const int rearLeftShockPin = 27;
+const int frontRightShockPin = 33;
+const int rearRightShockPin = 13;
 
 // Wheel objects from Wheel.h definition
 Wheel frontLeftWheel(frontLeftWheelPin);
