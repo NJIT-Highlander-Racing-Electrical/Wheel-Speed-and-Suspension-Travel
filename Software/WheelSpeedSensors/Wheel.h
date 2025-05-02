@@ -3,7 +3,7 @@ const int targetsPerRevolution = 4;  // number of sensing points per revolution 
 const float wheelSpinThreshold = 5;  // Speed difference (mph) above GPS vehicle velocity where we will declare wheelspin
 const float wheelSkidThreshold = 5;  // Speed difference (mph) below GPS vehicle velocity where we will declare skidding
 
-const float rpmToMphFactor = wheelDiameter / 63360 * 3.1415 * 60;  // When wheel RPM is multiplied by this, it results in that wheel's linear speed in MPH
+const float rpmToMphFactor = wheelDiameter / 63360.0 * 3.1415 * 60.0;  // When wheel RPM is multiplied by this, it results in that wheel's linear speed in MPH
 
 float vehicleSpeedMPH = 0;  // Since GPS velocity is given in m/s, this converts and stores to MPH
 

@@ -69,10 +69,10 @@ void loop() {
 
   // update CAN-Bus variables
 
-  frontLeftWheelRPM = frontLeftWheel.rpm;
-  frontRightWheelRPM = frontRightWheel.rpm;
-  rearLeftWheelRPM = rearLeftWheel.rpm;
-  rearRightWheelRPM = rearRightWheel.rpm;
+  frontLeftWheelRPM = frontLeftWheel.wheelSpeedMPH;
+  frontRightWheelRPM = frontRightWheel.wheelSpeedMPH;
+  rearLeftWheelRPM = rearLeftWheel.wheelSpeedMPH;
+  rearRightWheelRPM = rearRightWheel.wheelSpeedMPH;
 
   frontLeftWheelState = frontLeftWheel.wheelState;
   frontRightWheelState = frontRightWheel.wheelState;
@@ -86,17 +86,17 @@ void loop() {
 
   // Print data to serial monitor
 
-  DebugWheelSerial.print("frontLeftWheel_RPM:");
-  DebugWheelSerial.print(frontLeftWheel.rpm);
+  DebugWheelSerial.print("frontLeftWheel_Speed:");
+  DebugWheelSerial.print(frontLeftWheel.wheelSpeedMPH);
   DebugWheelSerial.print(",");
-  DebugWheelSerial.print("frontRightWheel_RPM:");
-  DebugWheelSerial.print(frontRightWheel.rpm);
+  DebugWheelSerial.print("frontRightWheel_Speed:");
+  DebugWheelSerial.print(frontRightWheel.wheelSpeedMPH);
   DebugWheelSerial.print(",");
-  DebugWheelSerial.print("rearLeftWheel_RPM:");
-  DebugWheelSerial.print(rearLeftWheel.rpm);
+  DebugWheelSerial.print("rearLeftWheel_Speed:");
+  DebugWheelSerial.print(rearLeftWheel.wheelSpeedMPH);
   DebugWheelSerial.print(",");
-  DebugWheelSerial.print("rearRightWheel_RPM:");
-  DebugWheelSerial.print(rearRightWheel.rpm);
+  DebugWheelSerial.print("rearRightWheel_Speed:");
+  DebugWheelSerial.print(rearRightWheel.wheelSpeedMPH);
   DebugWheelSerial.println();
 
   frontLeftShock.getPosition();
