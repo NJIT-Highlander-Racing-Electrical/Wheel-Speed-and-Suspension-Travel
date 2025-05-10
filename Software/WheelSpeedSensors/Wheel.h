@@ -67,7 +67,7 @@ public:
       // So, just get the current reading and wait for the next reading
       if (ignoreNextReading) {
         ignoreNextReading = false;                          // Reset the flag
-        currentReadingMillis = millis();                    // Mark the current time
+        lastReadingMillis = millis();                       // Mark the current time
         Serial.println("Ignoring Revolution (from zero)");  // Print a message stating what happened
         return;                                             // Return to main loop, waiting for an interrupt
       }
@@ -77,9 +77,7 @@ public:
       // Clear the update flag
       updateFlag = false;
 
-      // Set lastReadingMillis to the most recent reading
-      lastReadingMillis = currentReadingMillis;
-      // Then, update currentReadingMillis with the reading that triggered this condition
+      // Update currentReadingMillis with the reading that triggered this condition
       currentReadingMillis = millis();
 
       // Calculate the new RPM value
@@ -91,6 +89,8 @@ public:
         return;
       }
 
+      // Set lastReadingMillis to the most recent reading
+      lastReadingMillis = currentReadingMillis;
     }
   }
 
