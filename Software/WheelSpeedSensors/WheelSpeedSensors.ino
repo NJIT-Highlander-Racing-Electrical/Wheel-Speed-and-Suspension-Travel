@@ -104,17 +104,17 @@ void loop() {
   rearLeftShock.getPosition();
   rearRightShock.getPosition();
 
-  DebugShockSerial.print("frontLeftShock_reading:");
-  DebugShockSerial.print(frontLeftShock.reading);
+  DebugShockSerial.print("frontLeftShock_wheelPos:");
+  DebugShockSerial.print(frontLeftShock.wheelPos);
   DebugShockSerial.print(",");
-  DebugShockSerial.print("frontRightShock_reading:");
-  DebugShockSerial.print(frontRightShock.reading);
+  DebugShockSerial.print("frontRightShock_wheelPos:");
+  DebugShockSerial.print(frontRightShock.wheelPos);
   DebugShockSerial.print(",");
-  DebugShockSerial.print("rearLeftShock_reading:");
-  DebugShockSerial.print(rearLeftShock.reading);
+  DebugShockSerial.print("rearLeftShock_wheelPos:");
+  DebugShockSerial.print(rearLeftShock.wheelPos);
   DebugShockSerial.print(",");
-  DebugShockSerial.print("rearRightShock_reading:");
-  DebugShockSerial.print(rearRightShock.reading);
+  DebugShockSerial.print("rearRightShock_wheelPos:");
+  DebugShockSerial.print(rearRightShock.wheelPos);
   DebugShockSerial.println();
 }
 
