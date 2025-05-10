@@ -105,8 +105,8 @@ public:
       // Set a flag so that we know we cannot do any valuable calculations with the next reading
       ignoreNextReading = true;
 
-      // Set rpm to zero
-      rpm = 0;
+      // Set MPH to zero
+      wheelSpeedMPH = 0;
     }
   }
 
