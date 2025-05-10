@@ -68,6 +68,7 @@ public:
       if (ignoreNextReading) {
         ignoreNextReading = false;                          // Reset the flag
         lastReadingMillis = millis();                       // Mark the current time
+        updateFlag = false; // Clear the update flag before leaving
         Serial.println("Ignoring Revolution (from zero)");  // Print a message stating what happened
         return;                                             // Return to main loop, waiting for an interrupt
       }
