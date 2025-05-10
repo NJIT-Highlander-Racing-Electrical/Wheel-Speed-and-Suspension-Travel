@@ -12,10 +12,10 @@ const float frontMotionRatio = 0.75;
 const float rearMotionRatio = 0.82;
 
 // Experimentally-found rest values of shocks
-const int frontLeftShock_restReading = 2048;
-const int frontRightShock_restReading = 2048;
-const int rearLeftShock_restReading = 2048;
-const int rearRightShock_restReading = 2048;
+const int frontLeftShock_restReading = 3184;
+const int frontRightShock_restReading = 2869;
+const int rearLeftShock_restReading = 2240;
+const int rearRightShock_restReading = 2340;
 
 // The number of analogRead integer steps that is linearly related to inches traveled of sensor
 // Experimentally found 7 inches of travel went from 48 to 4010 which is 566 analog units per inch

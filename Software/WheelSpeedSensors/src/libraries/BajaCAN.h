@@ -310,7 +310,7 @@ void setupCAN(Subsystem name, int sendInterval = canSendInterval, int rxGpio = C
 
 
 
-// CAN_Task executes on secondary core of ESP32 and its sole function is CAN
+// CAN_Task executes on secondary core of ESP32 and its sole function is CAN  
 // All other processing is done on primary core
 void CAN_Task_Code(void* pvParameters) {
   Serial.print("CAN_Task running on core ");
@@ -327,6 +327,8 @@ void CAN_Task_Code(void* pvParameters) {
       // received a packet
       packetId = CAN.packetId();  // Get the packet ID
 
+  Serial.print("received packet with id ");
+  Serial.println(packetId);
 
       // Sort data packet to correct variable based on ID
       switch (packetId) {
@@ -556,7 +558,7 @@ void CAN_Task_Code(void* pvParameters) {
           if (CAN.packetRtr() && (currentSubsystem == DAS)) {
             CAN.beginPacket(statusDAS_ID);
             CAN.print(statusDAS);
-            CAN.endPacket();
+            CAN.endPacket(); 
           } else if (CAN.packetRtr() && (currentSubsystem != DAS)) {
             // We received an RTR but we are not the intended recipient, don't do anything
           }

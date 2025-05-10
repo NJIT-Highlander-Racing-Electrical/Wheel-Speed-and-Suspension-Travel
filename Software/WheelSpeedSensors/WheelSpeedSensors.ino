@@ -69,10 +69,10 @@ void loop() {
 
   // update CAN-Bus variables
 
-  frontLeftWheelRPM = frontLeftWheel.wheelSpeedMPH;
-  frontRightWheelRPM = frontRightWheel.wheelSpeedMPH;
-  rearLeftWheelRPM = rearLeftWheel.wheelSpeedMPH;
-  rearRightWheelRPM = rearRightWheel.wheelSpeedMPH;
+  frontLeftWheelSpeed = frontLeftWheel.wheelSpeedMPH;
+  frontRightWheelSpeed = frontRightWheel.wheelSpeedMPH;
+  rearLeftWheelSpeed = rearLeftWheel.wheelSpeedMPH;
+  rearRightWheelSpeed = rearRightWheel.wheelSpeedMPH;
 
   frontLeftWheelState = frontLeftWheel.wheelState;
   frontRightWheelState = frontRightWheel.wheelState;
