@@ -46,7 +46,6 @@ Shock rearLeftShock(rearLeftShockPin, false, rearLeftShock_restReading);
 Shock rearRightShock(rearRightShockPin, false, rearRightShock_restReading);
 
 void setup() {
-  setupCAN(WHEEL_SPEED);
   Serial.begin(460800);
 
   // If the speed sensor detects a metal, it outputs a HIGH. Otherwise, LOW
@@ -55,6 +54,10 @@ void setup() {
   attachInterrupt(digitalPinToInterrupt(frontRightWheel.sensorPin), frontRightISR, RISING);
   attachInterrupt(digitalPinToInterrupt(rearLeftWheel.sensorPin), rearLeftISR, RISING);
   attachInterrupt(digitalPinToInterrupt(rearRightWheel.sensorPin), rearRightISR, RISING);
+
+  setupCAN(WHEEL_SPEED);
+
+
 }
 
 void loop() {
