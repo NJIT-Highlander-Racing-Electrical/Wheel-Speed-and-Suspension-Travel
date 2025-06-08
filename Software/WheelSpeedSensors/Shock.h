@@ -8,6 +8,7 @@
 */
 
 // The motion ratio defines the ratio between shock travel and wheel travel
+// For every 0.75" that the front shock travels, the front wheel will travel 1"
 const float frontMotionRatio = 0.75;
 const float rearMotionRatio = 0.82;
 
@@ -62,9 +63,9 @@ public:
     // Convert reading to inches that sensor has traveled from rest
     shockPos = (float)(reading - restReading) / (float)analogValPerInch;
     if (frontShock) {
-      wheelPos = shockPos * frontMotionRatio;
+      wheelPos = shockPos / frontMotionRatio;
     } else {
-      wheelPos = shockPos * rearMotionRatio;
+      wheelPos = shockPos / rearMotionRatio;
     }
   }
 };
