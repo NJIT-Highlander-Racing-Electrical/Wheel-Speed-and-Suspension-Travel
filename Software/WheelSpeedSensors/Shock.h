@@ -53,8 +53,6 @@ public:
 
     // Get initial analog reading
     reading = analogRead(sensorPin);
-    delay(2);
-    reading = analogRead(sensorPin);
 
     if (frontLeftShock_restReading == 2048) {
       Serial.println("UPDATE THE DAMN REST READINGS");

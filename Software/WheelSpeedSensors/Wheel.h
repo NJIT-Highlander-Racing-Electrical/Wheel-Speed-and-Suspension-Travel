@@ -33,7 +33,7 @@ public:
   unsigned long lastReadingMillis;
   unsigned long currentReadingMillis;
 
-  int rpm;  // variable to store calculated RPM value
+  float rpm;  // variable to store calculated RPM value
 
   float wheelSpeedMPH;  // calculated wheel velocity for comparison with GPS vehicle velocity
 
@@ -45,12 +45,12 @@ public:
 
   Wheel(int pinNumber) {
     sensorPin = pinNumber;
-    lastReadingMillis = 0;
-    currentReadingMillis = 0;
+    lastReadingMillis = millis();
+    currentReadingMillis = millis();
     rpm = 0;
     wheelSpeedMPH = 0;
     updateFlag = false;
-    ignoreNextReading = false;
+    ignoreNextReading = true;
     wheelState = GOOD;
 
     pinMode(sensorPin, INPUT);
@@ -68,7 +68,7 @@ public:
       if (ignoreNextReading) {
         ignoreNextReading = false;                          // Reset the flag
         lastReadingMillis = millis();                       // Mark the current time
-        updateFlag = false; // Clear the update flag before leaving
+        updateFlag = false;                                 // Clear the update flag before leaving
         Serial.println("Ignoring Revolution (from zero)");  // Print a message stating what happened
         return;                                             // Return to main loop, waiting for an interrupt
       }
@@ -84,6 +84,12 @@ public:
       // Calculate the new RPM value
       if (currentReadingMillis != lastReadingMillis) {
         rpm = (1.00 / (float(currentReadingMillis - lastReadingMillis) / 1000.0)) * 60.0 / targetsPerRevolution;
+        if (rpm > 5000) {
+          Serial.print("RPM over 5000 error: ");
+          Serial.println(rpm);
+          lastReadingMillis = currentReadingMillis;
+          return;
+        }
         wheelSpeedMPH = rpm * rpmToMphFactor;
       } else {
         //Serial.print("Avoided Divide-By-Zero error, not updating rpm value");

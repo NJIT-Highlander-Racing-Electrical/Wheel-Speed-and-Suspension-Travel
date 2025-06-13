@@ -12,11 +12,11 @@
 *
 */
 
-#define DEBUG_WHEEL true
+#define DEBUG_WHEEL false
 #define DebugWheelSerial \
   if (DEBUG_WHEEL) Serial
 
-#define DEBUG_SHOCK true
+#define DEBUG_SHOCK false
 #define DebugShockSerial \
   if (DEBUG_SHOCK) Serial
 
@@ -107,16 +107,16 @@ void loop() {
   rearLeftShock.getPosition();
   rearRightShock.getPosition();
 
-  DebugShockSerial.print("frontLeftShock_wheelPos:");
+  DebugShockSerial.print("fl_pos:");
   DebugShockSerial.print(frontLeftShock.wheelPos);
   DebugShockSerial.print(",");
-  DebugShockSerial.print("frontRightShock_wheelPos:");
+  DebugShockSerial.print("fr_pos:");
   DebugShockSerial.print(frontRightShock.wheelPos);
   DebugShockSerial.print(",");
-  DebugShockSerial.print("rearLeftShock_wheelPos:");
+  DebugShockSerial.print("rl_pos:");
   DebugShockSerial.print(rearLeftShock.wheelPos);
   DebugShockSerial.print(",");
-  DebugShockSerial.print("rearRightShock_wheelPos:");
+  DebugShockSerial.print("rr_pos:");
   DebugShockSerial.print(rearRightShock.wheelPos);
   DebugShockSerial.println();
 }
@@ -129,7 +129,7 @@ void frontLeftISR() {
 
 void frontRightISR() {
   // Set update flag so calculation is completed after we exit this ISR
-  frontRightWheel.updateFlag = true;
+ frontRightWheel.updateFlag = true;
 }
 
 
