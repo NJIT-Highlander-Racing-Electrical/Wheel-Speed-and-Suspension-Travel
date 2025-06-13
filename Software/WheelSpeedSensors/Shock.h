@@ -59,7 +59,7 @@ public:
     }
 
     // Convert reading to inches that sensor has traveled from rest
-    shockPos = (float)(reading - restReading) / (float)analogValPerInch;
+    shockPos = (float)(restReading - reading) / (float)analogValPerInch;
     if (frontShock) {
       wheelPos = shockPos / frontMotionRatio;
     } else {
