@@ -567,103 +567,66 @@ void CAN_Task_Code(void *pvParameters) {
 
 
 
-          Serial.println("We are sending:");
-
-          Serial.print("frontleftwheelspeed: ");
-          Serial.println(frontLeftWheelSpeed);
-
-          Serial.print("frontRightwheelspeed:");
-          Serial.println(frontRightWheelSpeed);
-
-          Serial.print("rearLeftwheelspeed: ");
-          Serial.println(rearLeftWheelSpeed);
-
-          Serial.print("rearRightwheelspeed: ");
-          Serial.println(rearRightWheelSpeed);
-
-
-          Serial.print("frontLeftWheelState: ");
-          Serial.println(frontLeftWheelState);
-
-          Serial.print("frontRightWheelState: ");
-          Serial.println(frontRightWheelState);
-
-          Serial.print("rearLeftWheelState: ");
-          Serial.println(rearLeftWheelState);
-
-          Serial.print("frontLeftDisplacement: ");
-          Serial.println(frontLeftDisplacement);
-           Serial.print("frontRightDisplacement: ");
-          Serial.println(frontRightDisplacement);
-           Serial.print("rearLeftDisplacement: ");
-          Serial.println(rearLeftDisplacement);
-           Serial.print("rearRightDisplacement: ");
-          Serial.println(rearRightDisplacement);
-
-
-
-
-          
-
           // WHEEL RPMs
           CAN.beginPacket(frontLeftWheelSpeed_ID);
-          CAN.print(frontLeftWheelSpeed, 1);
+          CAN.print(frontLeftWheelSpeed);
+          CAN.endPacket();
+
+          CAN.beginPacket(frontRightWheelSpeed_ID);
+          CAN.print(frontRightWheelSpeed);
+          CAN.endPacket();
+
+          CAN.beginPacket(rearLeftWheelSpeed_ID);
+          CAN.print(rearLeftWheelSpeed);
+          CAN.endPacket();
+
+          CAN.beginPacket(rearRightWheelSpeed_ID);
+          CAN.print(rearRightWheelSpeed);
+          CAN.endPacket();
+
+/*
+
+          // WHEEL STATES
+          CAN.beginPacket(frontLeftWheelState_ID);
+          CAN.print("255");
           CAN.endPacket();
           delay(5);
 
-          CAN.beginPacket(frontRightWheelSpeed_ID);
-          CAN.print(frontRightWheelSpeed, 1);
-          CAN.endPacket();
-           delay(5);
-
-          CAN.beginPacket(rearLeftWheelSpeed_ID);
-          CAN.print(rearLeftWheelSpeed, 1);
-          CAN.endPacket();
-           delay(5);
-
-          CAN.beginPacket(rearRightWheelSpeed_ID);
-          CAN.print(rearRightWheelSpeed, 1);
-          CAN.endPacket();
-           delay(5);
-
-/*
-          // WHEEL STATES
-          CAN.beginPacket(frontLeftWheelState_ID);
-          CAN.print(frontLeftWheelState);
-          CAN.endPacket();
 
           CAN.beginPacket(frontRightWheelState_ID);
-          CAN.print(frontRightWheelState);
+          CAN.print("254");
           CAN.endPacket();
+          delay(5);
+
 
           CAN.beginPacket(rearLeftWheelState_ID);
-          CAN.print(rearLeftWheelState);
+          CAN.print("253");
           CAN.endPacket();
+          delay(5);
 
           CAN.beginPacket(rearRightWheelState_ID);
-          CAN.print(rearRightWheelState);
+          CAN.print("252");
           CAN.endPacket();
+          delay(5);
 */
+
           // SUSPENSION DISPLACEMENTS
           CAN.beginPacket(frontLeftDisplacement_ID);
           CAN.print(frontLeftDisplacement, 2);
           CAN.endPacket();
-           delay(5);
 
           CAN.beginPacket(frontRightDisplacement_ID);
           CAN.print(frontRightDisplacement, 2);
           CAN.endPacket();
-           delay(5);
 
           CAN.beginPacket(rearLeftDisplacement_ID);
           CAN.print(rearLeftDisplacement, 2);
           CAN.endPacket();
-           delay(5);
 
           CAN.beginPacket(rearRightDisplacement_ID);
           CAN.print(rearRightDisplacement, 2);
           CAN.endPacket();
-          
+
 
           break;
 
