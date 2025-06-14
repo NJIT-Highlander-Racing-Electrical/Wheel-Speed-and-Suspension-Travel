@@ -95,8 +95,8 @@ public:
         rpm = (1.00 / (float(currentReadingMillis - lastReadingMillis) / 1000.0)) * 60.0 / targetsPerRevolution;
         if (rpm > 650) {
           // 650 RPM comes out to roughly 45 MPH which is more than we'd ever expect to see (unfortunately)
-          DebugWheelSerial.print("RPM over 650 error: ");
-          DebugWheelSerial.println(rpm);
+          //Serial.print("RPM over 650 error: ");
+          //Serial.println(rpm);
           lastReadingMillis = currentReadingMillis;
           return;
         }
