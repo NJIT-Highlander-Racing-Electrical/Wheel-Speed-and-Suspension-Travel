@@ -32,6 +32,7 @@ public:
 
   unsigned long lastReadingMillis;
   unsigned long currentReadingMillis;
+  unsigned long nextExpectedMillis;
 
   float rpm;  // variable to store calculated RPM value
 
@@ -81,12 +82,21 @@ public:
       // Update currentReadingMillis with the reading that triggered this condition
       currentReadingMillis = millis();
 
+
+      // We want to make the zero checker based on the next expected reading time
+      // Give a bit of a buffer for slowing wheels before we count it as a zero
+      // If we pass this buffer, the wheels are not spinning and just result as zero
+      unsigned long timeDifference = currentReadingMillis - lastReadingMillis;
+      float f_timeDifference = timeDifference;
+      nextExpectedMillis = currentReadingMillis + 1.5*f_timeDifference;
+
       // Calculate the new RPM value
       if (currentReadingMillis != lastReadingMillis) {
         rpm = (1.00 / (float(currentReadingMillis - lastReadingMillis) / 1000.0)) * 60.0 / targetsPerRevolution;
-        if (rpm > 5000) {
-          Serial.print("RPM over 5000 error: ");
-          Serial.println(rpm);
+        if (rpm > 650) {
+          // 650 RPM comes out to roughly 45 MPH which is more than we'd ever expect to see (unfortunately)
+          DebugWheelSerial.print("RPM over 650 error: ");
+          DebugWheelSerial.println(rpm);
           lastReadingMillis = currentReadingMillis;
           return;
         }
@@ -104,7 +114,7 @@ public:
   // Checks to see if a certain period of time has passed since last reading
   // If we surpass that threshold, set the RPM to zero
   void checkZeroRPM() {
-    if ((millis() - currentReadingMillis) > zeroTimeoutMS) {
+    if (millis() > nextExpectedMillis) {
 
       // Set last reading to millis() so we can bounce back once another reading is detected
       currentReadingMillis = millis();
