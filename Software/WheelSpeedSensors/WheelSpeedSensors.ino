@@ -12,7 +12,7 @@
 *
 */
 
-#define DEBUG_WHEEL false
+#define DEBUG_WHEEL true
 #define DebugWheelSerial \
   if (DEBUG_WHEEL) Serial
 

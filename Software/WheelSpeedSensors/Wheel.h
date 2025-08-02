@@ -21,8 +21,6 @@ enum WheelState {
   SKID
 };
 
-
-
 // Class that defines shared variables and functions between the four wheels
 class Wheel {
 
@@ -46,17 +44,18 @@ public:
 
   Wheel(int pinNumber) {
     sensorPin = pinNumber;
-    lastReadingMillis = millis();
-    currentReadingMillis = millis();
+    unsigned long currentTime = millis();
+    lastReadingMillis = currentTime;
+    currentReadingMillis = currentTime;
+    nextExpectedMillis = currentTime + 3600000; // Set far in future initially (one hour)
     rpm = 0;
     wheelSpeedMPH = 0;
     updateFlag = false;
-    ignoreNextReading = true;
+    ignoreNextReading = true;  // Ignore first reading to establish baseline
     wheelState = GOOD;
 
     pinMode(sensorPin, INPUT);
   }
-
 
   // Calculates RPM based on elapsed time between last reading and current time
   // Only runs after respective ISR is triggered
@@ -64,47 +63,43 @@ public:
 
     if (updateFlag) {
 
-      // If this is true, we were at zero RPM, and we cannot do any calculations with this reading
-      // So, just get the current reading and wait for the next reading
-      if (ignoreNextReading) {
-        ignoreNextReading = false;                          // Reset the flag
-        lastReadingMillis = millis();                       // Mark the current time
-        updateFlag = false;                                 // Clear the update flag before leaving
-        //Serial.println("Ignoring Revolution (from zero)");  // Print a message stating what happened
-        return;                                             // Return to main loop, waiting for an interrupt
-      }
-
-      // Otherwise, continue normally
-
-      // Clear the update flag
+      // Clear the update flag first
       updateFlag = false;
 
       // Update currentReadingMillis with the reading that triggered this condition
       currentReadingMillis = millis();
 
-
-      // We want to make the zero checker based on the next expected reading time
-      // Give a bit of a buffer for slowing wheels before we count it as a zero
-      // If we pass this buffer, the wheels are not spinning and just result as zero
-      unsigned long timeDifference = currentReadingMillis - lastReadingMillis;
-      float f_timeDifference = timeDifference;
-      nextExpectedMillis = currentReadingMillis + 1.5*f_timeDifference;
+      // If we're ignoring this reading (first one after timeout), just update timing and return
+      if (ignoreNextReading) {
+        lastReadingMillis = currentReadingMillis;
+        ignoreNextReading = false;
+        // Set next expected time far in future until we get a second reading
+        nextExpectedMillis = currentReadingMillis + 10000;
+        return;
+      }
 
       // Calculate the new RPM value
-      if (currentReadingMillis != lastReadingMillis) {
-        rpm = (1.00 / (float(currentReadingMillis - lastReadingMillis) / 1000.0)) * 60.0 / targetsPerRevolution;
-        //Serial.print("Raw calculated RPM = ");
-        //Serial.println(rpm);
+      unsigned long timeDifference = currentReadingMillis - lastReadingMillis;
+      
+      if (timeDifference > 0) {
+        rpm = (1.00 / (float(timeDifference) / 1000.0)) * 60.0 / targetsPerRevolution;
+        
         if (rpm > 650) {
-          // 650 RPM comes out to roughly 45 MPH which is more than we'd ever expect to see (unfortunately)
-          //Serial.print("RPM over 650 error: ");
-          //Serial.println(rpm);
+          // 650 RPM comes out to roughly 45 MPH which is more than we'd ever expect to see
+          Serial.print("RPM over 650 error: ");
+          Serial.println(rpm);
           lastReadingMillis = currentReadingMillis;
           return;
         }
+        
         wheelSpeedMPH = rpm * rpmToMphFactor;
+        
+        // Set next expected reading time with 1.5x buffer
+        float f_timeDifference = timeDifference;
+        nextExpectedMillis = currentReadingMillis + (unsigned long)(1.5 * f_timeDifference);
+        
       } else {
-        //Serial.print("Avoided Divide-By-Zero error, not updating rpm value");
+        Serial.println("Avoided Divide-By-Zero error, not updating rpm value");
         return;
       }
 
@@ -116,22 +111,21 @@ public:
   // Checks to see if a certain period of time has passed since last reading
   // If we surpass that threshold, set the RPM to zero
   void checkZeroRPM() {
-    if (millis() > nextExpectedMillis) {
+    // Only check for zero if we have established a baseline (not ignoring readings)
+    if (!ignoreNextReading && millis() > nextExpectedMillis) {
 
-      //Serial.println("resetting to zero because:");
-      //Serial.print("currentReadingMillis = ");
-      //Serial.println(currentReadingMillis);
-      //Serial.print("lastReadingMillis = ");
-      //Serial.println(lastReadingMillis);
+      // Set last reading to current time
+      lastReadingMillis = millis();
 
-      // Set last reading to millis() so we can bounce back once another reading is detected
-      currentReadingMillis = millis();
-
-      // Set a flag so that we know we cannot do any valuable calculations with the next reading
+      // Set a flag so that we know we cannot do valuable calculations with the next reading
       ignoreNextReading = true;
 
-      // Set MPH to zero
+      // Set RPM and MPH to zero
+      rpm = 0;
       wheelSpeedMPH = 0;
+      
+      // Reset next expected time to far future
+      nextExpectedMillis = millis() + 10000;
     }
   }
 
