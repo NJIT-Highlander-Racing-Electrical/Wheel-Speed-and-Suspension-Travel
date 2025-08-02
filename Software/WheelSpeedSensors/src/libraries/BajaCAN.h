@@ -570,27 +570,19 @@ void CAN_Task_Code(void *pvParameters) {
           // WHEEL RPMs
           CAN.beginPacket(frontLeftWheelSpeed_ID);
           CAN.print(frontLeftWheelSpeed, 2);
-          CAN.print('\n');
           CAN.endPacket();
-          delay(5);
 
           CAN.beginPacket(frontRightWheelSpeed_ID);
           CAN.print(frontRightWheelSpeed, 2);
-          CAN.print('\n');
           CAN.endPacket();
-          delay(5);
 
           CAN.beginPacket(rearLeftWheelSpeed_ID);
           CAN.print(rearLeftWheelSpeed, 2);
-          CAN.print('\n');
           CAN.endPacket();
-          delay(5);
 
           CAN.beginPacket(rearRightWheelSpeed_ID);
           CAN.print(rearRightWheelSpeed, 2);
-          CAN.print('\n');
           CAN.endPacket();
-          delay(5);
 
 /*
 
@@ -619,31 +611,21 @@ void CAN_Task_Code(void *pvParameters) {
 */
 
           // SUSPENSION DISPLACEMENTS
-
-
           CAN.beginPacket(frontLeftDisplacement_ID);
           CAN.print(frontLeftDisplacement, 2);
-          CAN.print('\n');
           CAN.endPacket();
-          delay(5);
 
           CAN.beginPacket(frontRightDisplacement_ID);
           CAN.print(frontRightDisplacement, 2);
-          CAN.print('\n');
           CAN.endPacket();
-          delay(5);
 
           CAN.beginPacket(rearLeftDisplacement_ID);
           CAN.print(rearLeftDisplacement, 2);
-          CAN.print('\n');
           CAN.endPacket();
-          delay(5);
 
           CAN.beginPacket(rearRightDisplacement_ID);
           CAN.print(rearRightDisplacement, 2);
-          CAN.print('\n');
           CAN.endPacket();
-          delay(5);
 
 
           break;
