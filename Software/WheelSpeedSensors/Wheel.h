@@ -93,6 +93,8 @@ public:
       // Calculate the new RPM value
       if (currentReadingMillis != lastReadingMillis) {
         rpm = (1.00 / (float(currentReadingMillis - lastReadingMillis) / 1000.0)) * 60.0 / targetsPerRevolution;
+        Serial.print("Raw calculated RPM = ");
+        Serial.println(rpm);
         if (rpm > 650) {
           // 650 RPM comes out to roughly 45 MPH which is more than we'd ever expect to see (unfortunately)
           //Serial.print("RPM over 650 error: ");
@@ -115,6 +117,12 @@ public:
   // If we surpass that threshold, set the RPM to zero
   void checkZeroRPM() {
     if (millis() > nextExpectedMillis) {
+
+      Serial.println("resetting to zero because:");
+      Serial.print("currentReadingMillis = ");
+      Serial.println(currentReadingMillis);
+      Serial.print("lastReadingMillis = ");
+      Serial.println(lastReadingMillis);
 
       // Set last reading to millis() so we can bounce back once another reading is detected
       currentReadingMillis = millis();

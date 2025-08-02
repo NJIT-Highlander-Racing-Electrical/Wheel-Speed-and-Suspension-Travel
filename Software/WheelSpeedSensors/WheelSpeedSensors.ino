@@ -16,7 +16,7 @@
 #define DebugWheelSerial \
   if (DEBUG_WHEEL) Serial
 
-#define DEBUG_SHOCK true
+#define DEBUG_SHOCK false
 #define DebugShockSerial \
   if (DEBUG_SHOCK) Serial
 
