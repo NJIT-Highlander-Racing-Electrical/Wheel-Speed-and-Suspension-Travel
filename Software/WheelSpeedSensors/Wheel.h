@@ -70,7 +70,7 @@ public:
         ignoreNextReading = false;                          // Reset the flag
         lastReadingMillis = millis();                       // Mark the current time
         updateFlag = false;                                 // Clear the update flag before leaving
-        DEBUG_WHEEL.println("Ignoring Revolution (from zero)");  // Print a message stating what happened
+        //Serial.println("Ignoring Revolution (from zero)");  // Print a message stating what happened
         return;                                             // Return to main loop, waiting for an interrupt
       }
 
@@ -93,8 +93,8 @@ public:
       // Calculate the new RPM value
       if (currentReadingMillis != lastReadingMillis) {
         rpm = (1.00 / (float(currentReadingMillis - lastReadingMillis) / 1000.0)) * 60.0 / targetsPerRevolution;
-        DEBUG_WHEEL.print("Raw calculated RPM = ");
-        DEBUG_WHEEL.println(rpm);
+        //Serial.print("Raw calculated RPM = ");
+        //Serial.println(rpm);
         if (rpm > 650) {
           // 650 RPM comes out to roughly 45 MPH which is more than we'd ever expect to see (unfortunately)
           //Serial.print("RPM over 650 error: ");
@@ -118,11 +118,11 @@ public:
   void checkZeroRPM() {
     if (millis() > nextExpectedMillis) {
 
-      DEBUG_WHEEL.println("resetting to zero because:");
-      DEBUG_WHEEL.print("currentReadingMillis = ");
-      DEBUG_WHEEL.println(currentReadingMillis);
-      DEBUG_WHEEL.print("lastReadingMillis = ");
-      DEBUG_WHEEL.println(lastReadingMillis);
+      //Serial.println("resetting to zero because:");
+      //Serial.print("currentReadingMillis = ");
+      //Serial.println(currentReadingMillis);
+      //Serial.print("lastReadingMillis = ");
+      //Serial.println(lastReadingMillis);
 
       // Set last reading to millis() so we can bounce back once another reading is detected
       currentReadingMillis = millis();
