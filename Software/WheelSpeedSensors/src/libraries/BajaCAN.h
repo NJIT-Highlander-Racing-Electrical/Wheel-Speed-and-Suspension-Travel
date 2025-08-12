@@ -1,6 +1,6 @@
 /*********************************************************************************
 *
-*   BajaCAN.h  -- Version 1.4.1
+*   BajaCAN.h  -- Version 1.5.0
 *
 *   The goal of this BajaCAN header/driver is to enable all subsystems throughout
 *   the vehicle to use the same variables, data types, and functions. That way,
@@ -317,9 +317,6 @@ void CAN_Task_Code(void *pvParameters) {
       // received a packet
       packetId = CAN.packetId();  // Get the packet ID
 
-      //Serial.print("packetid: ");
-      //Serial.println(packetId);
-
       // Sort data packet to correct variable based on ID
       switch (packetId) {
 
@@ -421,6 +418,7 @@ void CAN_Task_Code(void *pvParameters) {
         // Suspension Displacement Case
         case rearRightDisplacement_ID:
           rearRightDisplacement = CAN.parseFloat();
+
           break;
 
         // DAS Accel Case
@@ -565,8 +563,6 @@ void CAN_Task_Code(void *pvParameters) {
 
         case WHEEL_SPEED:
 
-
-
           // WHEEL RPMs
           CAN.beginPacket(frontLeftWheelSpeed_ID);
           CAN.print(frontLeftWheelSpeed, 2);
@@ -584,35 +580,24 @@ void CAN_Task_Code(void *pvParameters) {
           CAN.print(rearRightWheelSpeed, 2);
           CAN.endPacket();
 
-/*
-
           // WHEEL STATES
           CAN.beginPacket(frontLeftWheelState_ID);
-          CAN.print("255");
+          CAN.print(frontLeftWheelState);
           CAN.endPacket();
-          delay(5);
-
 
           CAN.beginPacket(frontRightWheelState_ID);
-          CAN.print("254");
+          CAN.print(frontRightWheelState);
           CAN.endPacket();
-          delay(5);
-
 
           CAN.beginPacket(rearLeftWheelState_ID);
-          CAN.print("253");
+          CAN.print(rearLeftWheelState);
           CAN.endPacket();
-          delay(5);
 
           CAN.beginPacket(rearRightWheelState_ID);
-          CAN.print("252");
+          CAN.print(rearRightWheelState);
           CAN.endPacket();
-          delay(5);
-*/
 
           // SUSPENSION DISPLACEMENTS
-
-
           CAN.beginPacket(frontLeftDisplacement_ID);
           CAN.print(frontLeftDisplacement, 2);
           CAN.endPacket();
@@ -628,7 +613,6 @@ void CAN_Task_Code(void *pvParameters) {
           CAN.beginPacket(rearRightDisplacement_ID);
           CAN.print(rearRightDisplacement, 2);
           CAN.endPacket();
-
 
           break;
 
@@ -653,27 +637,27 @@ void CAN_Task_Code(void *pvParameters) {
 
         case DAS:
           CAN.beginPacket(accelerationX_ID);
-          CAN.print(accelerationX);
+          CAN.print(accelerationX, 2);
           CAN.endPacket();
 
           CAN.beginPacket(accelerationY_ID);
-          CAN.print(accelerationY);
+          CAN.print(accelerationY, 2);
           CAN.endPacket();
 
           CAN.beginPacket(accelerationZ_ID);
-          CAN.print(accelerationZ);
+          CAN.print(accelerationZ, 2);
           CAN.endPacket();
 
           CAN.beginPacket(gyroscopeRoll_ID);
-          CAN.print(gyroscopeRoll);
+          CAN.print(gyroscopeRoll, 2);
           CAN.endPacket();
 
           CAN.beginPacket(gyroscopePitch_ID);
-          CAN.print(gyroscopePitch);
+          CAN.print(gyroscopePitch, 2);
           CAN.endPacket();
 
           CAN.beginPacket(gyroscopeYaw_ID);
-          CAN.print(gyroscopeYaw);
+          CAN.print(gyroscopeYaw, 2);
           CAN.endPacket();
 
           CAN.beginPacket(gpsLatitude_ID);
@@ -735,6 +719,7 @@ void CAN_Task_Code(void *pvParameters) {
           CAN.endPacket();
 
           break;
+         
       }
     }
   }
