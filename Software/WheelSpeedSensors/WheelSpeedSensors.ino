@@ -48,8 +48,6 @@ void setup() {
   attachInterrupt(digitalPinToInterrupt(rearRightWheel.sensorPin), rearRightISR, RISING);
 
   setupCAN(WHEEL_SPEED);
-
-
 }
 
 void loop() {
@@ -113,23 +111,42 @@ void loop() {
 }
 
 void frontLeftISR() {
-  // Set update flag so calculation is completed after we exit this ISR
 
+  // Save current time
+  frontLeftWheel.lastReadingMicros = frontLeftWheel.currentReadingMicros;
+  frontLeftWheel.currentReadingMicros = micros();
+
+  // Set update flag so calculation is completed after we exit this ISR
   frontLeftWheel.updateFlag = true;
 }
 
 void frontRightISR() {
+
+  // Save current time
+  frontRightWheel.lastReadingMicros = frontRightWheel.currentReadingMicros;
+  frontRightWheel.currentReadingMicros = micros();
+
   // Set update flag so calculation is completed after we exit this ISR
- frontRightWheel.updateFlag = true;
+  frontRightWheel.updateFlag = true;
 }
 
 
 void rearLeftISR() {
+
+  // Save current time
+  rearLeftWheel.lastReadingMicros = rearLeftWheel.currentReadingMicros;
+  rearLeftWheel.currentReadingMicros = micros();
+
   // Set update flag so calculation is completed after we exit this ISR
   rearLeftWheel.updateFlag = true;
 }
 
 void rearRightISR() {
+
+  // Save current time
+  rearRightWheel.lastReadingMicros = rearRightWheel.currentReadingMicros;
+  rearRightWheel.currentReadingMicros = micros();
+
   // Set update flag so calculation is completed after we exit this ISR
   rearRightWheel.updateFlag = true;
 }

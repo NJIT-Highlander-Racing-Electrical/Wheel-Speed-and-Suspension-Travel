@@ -12,8 +12,8 @@ float vehicleSpeedMPH = 0;  // Since GPS velocity is given in m/s, this converts
 // This means we have 0.243 wheel revolutions per second
 // If we have 4 targets on the wheel, we have a target going by every 1.03 seconds
 // So, If we do not see a reading in 1.25 seconds for example, we know our wheel speed should be zero
-// This comes by doing 1/(0.243 * targetsPerRevolution), plus a small error threshold, say 25%, and then converting from seconds to ms
-const int zeroTimeoutMS = (1.00 / (0.243 * (float)targetsPerRevolution)) * 1.25 * 1000;
+// This comes by doing 1/(0.243 * targetsPerRevolution), plus a small error threshold, say 25%, and then converting from seconds to microseconds
+const long zeroTimeoutMicros = (1.00 / (0.243 * (float)targetsPerRevolution)) * 1.25 * 1000000;
 
 enum WheelState {
   GOOD,
@@ -28,9 +28,9 @@ public:
 
   int sensorPin;  // GPIO that sensor is hooked up to
 
-  unsigned long lastReadingMillis;
-  unsigned long currentReadingMillis;
-  unsigned long nextExpectedMillis;
+  unsigned long lastReadingMicros;
+  unsigned long currentReadingMicros;
+  unsigned long nextExpectedMicros;
 
   float rpm;  // variable to store calculated RPM value
 
@@ -44,10 +44,10 @@ public:
 
   Wheel(int pinNumber) {
     sensorPin = pinNumber;
-    unsigned long currentTime = millis();
-    lastReadingMillis = currentTime;
-    currentReadingMillis = currentTime;
-    nextExpectedMillis = currentTime + 3600000; // Set far in future initially (one hour)
+    unsigned long currentTime = micros();
+    lastReadingMicros = currentTime;
+    currentReadingMicros = currentTime;
+    nextExpectedMicros = currentTime + 3600000000; // Set far in future initially (one hour)
     rpm = 0;
     wheelSpeedMPH = 0;
     updateFlag = false;
@@ -66,29 +66,26 @@ public:
       // Clear the update flag first
       updateFlag = false;
 
-      // Update currentReadingMillis with the reading that triggered this condition
-      currentReadingMillis = millis();
-
       // If we're ignoring this reading (first one after timeout), just update timing and return
       if (ignoreNextReading) {
-        lastReadingMillis = currentReadingMillis;
+        lastReadingMicros = currentReadingMicros;
         ignoreNextReading = false;
         // Set next expected time far in future until we get a second reading
-        nextExpectedMillis = currentReadingMillis + 10000;
+        nextExpectedMicros = currentReadingMicros + 10000000;
         return;
       }
 
       // Calculate the new RPM value
-      unsigned long timeDifference = currentReadingMillis - lastReadingMillis;
+      unsigned long timeDifference = currentReadingMicros - lastReadingMicros;
       
       if (timeDifference > 0) {
-        rpm = (1.00 / (float(timeDifference) / 1000.0)) * 60.0 / targetsPerRevolution;
+        rpm = (1.00 / (float(timeDifference) / 1000000.0)) * 60.0 / targetsPerRevolution;
         
         if (rpm > 650) {
           // 650 RPM comes out to roughly 45 MPH which is more than we'd ever expect to see
           Serial.print("RPM over 650 error: ");
           Serial.println(rpm);
-          lastReadingMillis = currentReadingMillis;
+          lastReadingMicros = currentReadingMicros;
           return;
         }
         
@@ -96,15 +93,15 @@ public:
         
         // Set next expected reading time with 1.5x buffer
         float f_timeDifference = timeDifference;
-        nextExpectedMillis = currentReadingMillis + (unsigned long)(1.5 * f_timeDifference);
+        nextExpectedMicros = currentReadingMicros + (unsigned long)(1.5 * f_timeDifference);
         
       } else {
         Serial.println("Avoided Divide-By-Zero error, not updating rpm value");
         return;
       }
 
-      // Set lastReadingMillis to the most recent reading
-      lastReadingMillis = currentReadingMillis;
+      lastReadingMicros = currentReadingMicros;
+
     }
   }
 
@@ -112,10 +109,10 @@ public:
   // If we surpass that threshold, set the RPM to zero
   void checkZeroRPM() {
     // Only check for zero if we have established a baseline (not ignoring readings)
-    if (!ignoreNextReading && millis() > nextExpectedMillis) {
+    if (!ignoreNextReading && micros() > nextExpectedMicros) {
 
       // Set last reading to current time
-      lastReadingMillis = millis();
+      lastReadingMicros = micros();
 
       // Set a flag so that we know we cannot do valuable calculations with the next reading
       ignoreNextReading = true;
@@ -125,7 +122,7 @@ public:
       wheelSpeedMPH = 0;
       
       // Reset next expected time to far future
-      nextExpectedMillis = millis() + 10000;
+      nextExpectedMicros = micros() + 10000000;
     }
   }
 
