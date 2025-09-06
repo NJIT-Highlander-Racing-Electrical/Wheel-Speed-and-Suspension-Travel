@@ -1,18 +1,10 @@
-#include "src/libraries/BajaCAN.h"  // https://arduino.github.io/arduino-cli/0.35/sketch-specification/#src-subfolder
 #include "Wheel.h"
 #include "Shock.h"
+#include "BajaCAN.h"
 
-/*
-*
-*  NOTE: Maybe something should be added in this program that does the following:
-*  
-*  If the elapsed time is less than we would ever expect to see (at the fastest RPM),
-*  then ignore the reading. Don't calculate RPM, but set the read time to 
-*  lastReadingMillis so that we have a starting point for when we see another rev.
-*
-*/
 
-#define DEBUG_WHEEL true
+
+#define DEBUG_WHEEL false
 #define DebugWheelSerial \
   if (DEBUG_WHEEL) Serial
 
@@ -62,7 +54,6 @@ void setup() {
 
 void loop() {
 
-  checkStatus();  // Checks status of all systems for error reporting to Base Station
 
   // updateWheelStatus calculates RPM if applicable, checks zero RPM status, and checks for wheelspin/wheel skid
   frontLeftWheel.updateWheelStatus();
