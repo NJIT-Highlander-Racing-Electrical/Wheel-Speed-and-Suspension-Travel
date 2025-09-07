@@ -1,14 +1,88 @@
 /*********************************************************************************
 *
-*   BajaCAN.h  -- Version 2.0.0 - Native ESP32 CAN Driver
+*   BajaCAN.h  -- Version 2.1.0 - Native ESP32 CAN Driver
 *
-*   The goal of this BajaCAN header/driver is to enable all subsystems throughout
+The goal of this BajaCAN header/driver is to enable all subsystems throughout
 *   the vehicle to use the same variables, data types, and functions. That way,
 *   any changes made to the CAN bus system can easily be applied to each subsystem
 *   by simply updating the version of this file.
+
 *
-*   This driver now uses ESP32's native CAN controller instead of the arduino-CAN
-*   library to eliminate phantom packet issues and improve reliability.
+*   This driver serves several functions:
+*
+
+*     *** CAN Setup/Initialization ***
+*
+*     This CAN driver declares all of the variables that will be used in
+*     CAN transmissions. That way, there is no confusion as to what data packet
+*     a variable name refers to. In addition, declaring the variables in the CAN
+*     header file allows for each variable to have the same data type. If one
+*     subsystem were to use a float for an RPM value while another uses an integer,
+*     there is a chance we could run into issues.
+*
+*     Before using CAN, several initialization steps must be taken. Since this must
+*     happen during the setup() of the main code, there is a function named
+*     setupCAN() that can be called in the setup() portion to execute all CAN setup.
+*     Ideally, all subsystems will use the same pair of GPIO for CAN that do not
+*     have any special functions. However, if setup does differ between subsystems,
+*     setupCAN() has optional arguments for baud rate, GPIO, send frequency, etc.
+*     The only argument that must be passed into setupCAN is a subsystem name
+*     (e.g. DASHBOARD) which is used to determine which CAN messages should be
+*     transmitted from each subsystem.
+*
+*     A pinout for the ESP32's we use can be found here:
+*     https://lastminuteengineers.com/wp-content/uploads/iot/ESP32-Pinout.png
+*
+*     While most pins can technically be used for CAN, some should be avoided.
+*     - GPIO0, GPIO2, GPIO5, GPIO12, and GPIO15 are strapping pins used during boot
+*     - GPIO34, GPIO35, GPIO36, and GPIO39 are input-only pins
+*     - GPIO5, GPIO18, GPIO19, and GPIO23 are used for SPI
+*     - GPIO21 and GPIO22 are used for I2C
+*     - GPIO1 and GPIO3 are used for Serial communication with a PC
+*
+*     Also in CAN setup, we must configure the data rate to be used. This can be
+*     50Kbps, 80Kbps, 100Kbps, etc. We will generally use 500Kbps as it provides a
+*     sufficiently high data rate which also being slow enough to make signal issues
+*     less common. Note that newer ESP32 microcontrollers have an issue in their CAN
+*     hardware that causes them to run at half of the provided data rate. Therefore,
+*     most of our subsytems should be configured at 1000Kbps.
+*
+*
+*
+*     *** CAN Receiving ***
+*
+*     This part of the driver is responsible for parsing incoming packets, getting the
+*     packet ID, and then sorting the receiving data into the proper variable. For
+*     simplicity purposes, each subsystem sorts all valid data transmissions it
+*     receives, even if that data packet isn't pertient to its function. Hardware
+*     limitations should not be an issue, as CAN has its own dedicated core for
+*     processing on each subsystem. The ESP32 also has plenty of memory to store all of
+*     the data packets we use in CAN transmission.
+*
+*     When the program needs to work with a variable, such as updating a display or
+*     saving data to an SD card, it can simply pass the variable knowing the CAN
+*     driver has updated it with the newest value.
+*
+*
+*
+*     *** CAN Sending ***
+*
+*     This driver categorizes each variable based off of which subsystem should be
+*     sending it. By passing through a subsystem name in setupCAN(), the subsybstem is
+*     essentially telling the CAN driver, "Hey, I'm the CVT." Then, the driver would know
+*     to only send CAN packets that the CVT should be updating with new data. Something
+*     like the dashboard should never be reporting an RPM value to the rest of the vehicle
+*     since it's not obtaining that data. This makes writing the main code easier, as CAN
+*     data can just be sent on a fixed interval without any intervention by the main code.
+*
+*
+*     *** Roadmap Ideas ***
+*       - Implement a flag that is set when a data value is updated, and reset when
+*         the main core reads that new data value. This could be practical in
+*         situations where we need to be sure that the data we're using is recent.
+*         There could even be a flag received from the main code that the CAN driver
+*         uses to know when it has data to send out
+*
 *
 ************************************************************************************/
 
@@ -181,7 +255,16 @@ bool sendCANFloat(uint32_t id, float value) {
   int length;
   floatToBytes(value, tx_message.data, length);
   tx_message.data_length_code = length;
-  return (can_transmit(&tx_message, pdMS_TO_TICKS(10)) == ESP_OK);
+  
+  // Use 0 timeout for non-blocking, or reduce to 1ms
+  esp_err_t result = can_transmit(&tx_message, 0); // Non-blocking
+  if (result != ESP_OK && result != ESP_ERR_TIMEOUT) {
+    Serial.print("CAN send failed for ID 0x");
+    Serial.print(id, HEX);
+    Serial.print(" Error: ");
+    Serial.println(result);
+  }
+  return (result == ESP_OK);
 }
 
 // CAN Task function
