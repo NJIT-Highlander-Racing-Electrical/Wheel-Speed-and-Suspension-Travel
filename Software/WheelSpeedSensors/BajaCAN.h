@@ -1,14 +1,14 @@
 /*********************************************************************************
 *
-*   BajaCAN.h  -- Version 2.1.0 - Native ESP32 CAN Driver
+*   BajaCAN.h  -- Version 2.2.1 - Native ESP32 CAN Driver
 *
-The goal of this BajaCAN header/driver is to enable all subsystems throughout
+*   The goal of this BajaCAN header/driver is to enable all subsystems throughout
 *   the vehicle to use the same variables, data types, and functions. That way,
 *   any changes made to the CAN bus system can easily be applied to each subsystem
 *   by simply updating the version of this file.
 
 *
-*   This driver serves several functions:
+*     This driver serves several functions:
 *
 
 *     *** CAN Setup/Initialization ***
@@ -194,14 +194,6 @@ volatile int batteryPercentage;
 volatile int sdLoggingActive;
 volatile int dataScreenshotFlag;
 
-// Helper functions
-int parseIntFromBytes(uint8_t* data, int length) {
-  int result = 0;
-  for (int i = 0; i < length && i < 4; i++) {
-    result = result * 10 + (data[i] - '0');
-  }
-  return result;
-}
 
 float parseFloatFromBytes(uint8_t* data, int length) {
   if (length == 4) {
@@ -213,11 +205,16 @@ float parseFloatFromBytes(uint8_t* data, int length) {
 }
 
 void intToBytes(int value, uint8_t* buffer, int& length) {
-  String str = String(value);
-  length = str.length();
-  for (int i = 0; i < length; i++) {
-    buffer[i] = str[i];
-  }
+  length = 4;  // Always 4 bytes
+  buffer[0] = (value >> 24) & 0xFF;
+  buffer[1] = (value >> 16) & 0xFF; 
+  buffer[2] = (value >> 8) & 0xFF;
+  buffer[3] = value & 0xFF;
+}
+
+int parseIntFromBytes(uint8_t* data, int length) {
+  if (length != 4) return 0;
+  return (data[0] << 24) | (data[1] << 16) | (data[2] << 8) | data[3];
 }
 
 void floatToBytes(float value, uint8_t* buffer, int& length) {
@@ -256,8 +253,7 @@ bool sendCANFloat(uint32_t id, float value) {
   floatToBytes(value, tx_message.data, length);
   tx_message.data_length_code = length;
   
-  // Use 0 timeout for non-blocking, or reduce to 1ms
-  esp_err_t result = can_transmit(&tx_message, 0); // Non-blocking
+  esp_err_t result = can_transmit(&tx_message, pdMS_TO_TICKS(5));
   if (result != ESP_OK && result != ESP_ERR_TIMEOUT) {
     Serial.print("CAN send failed for ID 0x");
     Serial.print(id, HEX);
@@ -470,7 +466,9 @@ void CAN_Task_Code(void *pvParameters) {
           break;
       }
 
-      delay(canSendInterval / 2);
+
+// Delay to allow watchdog to reset on this core
+vTaskDelay(1);
     }
   }
 }
