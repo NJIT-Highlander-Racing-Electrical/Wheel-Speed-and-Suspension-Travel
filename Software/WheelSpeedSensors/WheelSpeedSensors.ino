@@ -47,7 +47,7 @@ void setup() {
   attachInterrupt(digitalPinToInterrupt(rearLeftWheel.sensorPin), rearLeftISR, RISING);
   attachInterrupt(digitalPinToInterrupt(rearRightWheel.sensorPin), rearRightISR, RISING);
 
-  setupCAN(WHEEL_SPEED);
+  setupCAN(WHEEL_SPEED, 10); // sendInterval = 10 means that we will be sending 100 times per second
 }
 
 void loop() {
