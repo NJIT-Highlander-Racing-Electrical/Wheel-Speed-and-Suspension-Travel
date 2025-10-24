@@ -7,13 +7,14 @@ const float rpmToMphFactor = wheelDiameter / 63360.0 * 3.1415 * 60.0;  // When w
 
 float vehicleSpeedMPH = 0;  // Since GPS velocity is given in m/s, this converts and stores to MPH
 
-// At one mile per hour, we are moving 1.46 feet per second
-// Our wheel circumference is 6 feet
-// This means we have 0.243 wheel revolutions per second
-// If we have 4 targets on the wheel, we have a target going by every 1.03 seconds
-// So, If we do not see a reading in 1.25 seconds for example, we know our wheel speed should be zero
-// This comes by doing 1/(0.243 * targetsPerRevolution), plus a small error threshold, say 25%, and then converting from seconds to microseconds
-const long zeroTimeoutMicros = (1.00 / (0.243 * (float)targetsPerRevolution)) * 1.25 * 1000000;
+// Minimum time between valid readings (microseconds) - prevents noise/bouncing
+// 5000us = 5ms = maximum 720 RPM (well above expected max)
+const unsigned long MIN_PULSE_INTERVAL = 5000;
+
+// Maximum time to wait before declaring zero RPM
+// At 1 MPH with 4 targets, we get a pulse every ~1.03 seconds
+// Allow 2 seconds (2,000,000 microseconds) before declaring zero
+const unsigned long ZERO_TIMEOUT_MICROS = 2000000;
 
 enum WheelState {
   GOOD,
@@ -28,31 +29,45 @@ public:
 
   int sensorPin;  // GPIO that sensor is hooked up to
 
-  unsigned long lastReadingMicros;
-  unsigned long currentReadingMicros;
+  volatile unsigned long lastReadingMicros;
+  volatile unsigned long currentReadingMicros;
+  volatile bool updateFlag;
+
   unsigned long nextExpectedMicros;
-
+  
   float rpm;  // variable to store calculated RPM value
-
   float wheelSpeedMPH;  // calculated wheel velocity for comparison with GPS vehicle velocity
 
-  volatile bool updateFlag;  // updateFlag is used to know when to calculate a new RPM
-
   bool ignoreNextReading;
+  bool isFirstReading;
 
   WheelState wheelState;
+
+  // Moving average for stability
+  static const int AVG_SAMPLES = 3;
+  float rpmHistory[AVG_SAMPLES];
+  int rpmHistoryIndex;
+  int rpmHistoryCount;  // Track how many samples we have
 
   Wheel(int pinNumber) {
     sensorPin = pinNumber;
     unsigned long currentTime = micros();
     lastReadingMicros = currentTime;
     currentReadingMicros = currentTime;
-    nextExpectedMicros = currentTime + 3600000000; // Set far in future initially (one hour)
+    nextExpectedMicros = currentTime + ZERO_TIMEOUT_MICROS;
     rpm = 0;
     wheelSpeedMPH = 0;
     updateFlag = false;
-    ignoreNextReading = true;  // Ignore first reading to establish baseline
+    ignoreNextReading = false;
+    isFirstReading = true;
     wheelState = GOOD;
+    rpmHistoryIndex = 0;
+    rpmHistoryCount = 0;
+
+    // Initialize RPM history to zero
+    for(int i = 0; i < AVG_SAMPLES; i++) {
+      rpmHistory[i] = 0;
+    }
 
     pinMode(sensorPin, INPUT);
   }
@@ -60,77 +75,138 @@ public:
   // Calculates RPM based on elapsed time between last reading and current time
   // Only runs after respective ISR is triggered
   void calculateRPM() {
+    if (!updateFlag) return;
 
-    if (updateFlag) {
+    // Capture timing variables atomically to avoid race conditions
+    noInterrupts();
+    unsigned long capturedCurrent = currentReadingMicros;
+    unsigned long capturedLast = lastReadingMicros;
+    updateFlag = false;
+    interrupts();
 
-      // Clear the update flag first
-      updateFlag = false;
-
-      // If we're ignoring this reading (first one after timeout), just update timing and return
-      if (ignoreNextReading) {
-        lastReadingMicros = currentReadingMicros;
-        ignoreNextReading = false;
-        // Set next expected time far in future until we get a second reading
-        nextExpectedMicros = currentReadingMicros + 10000000;
-        return;
-      }
-
-      // Calculate the new RPM value
-      unsigned long timeDifference = currentReadingMicros - lastReadingMicros;
-      
-      if (timeDifference > 0) {
-        rpm = (1.00 / (float(timeDifference) / 1000000.0)) * 60.0 / targetsPerRevolution;
-        
-        if (rpm > 650) {
-          // 650 RPM comes out to roughly 45 MPH which is more than we'd ever expect to see
-          Serial.print("RPM over 650 error: ");
-          Serial.println(rpm);
-          lastReadingMicros = currentReadingMicros;
-          return;
-        }
-        
-        wheelSpeedMPH = rpm * rpmToMphFactor;
-        
-        // Set next expected reading time with 1.5x buffer
-        float f_timeDifference = timeDifference;
-        nextExpectedMicros = currentReadingMicros + (unsigned long)(1.5 * f_timeDifference);
-        
-      } else {
-        Serial.println("Avoided Divide-By-Zero error, not updating rpm value");
-        return;
-      }
-
-      lastReadingMicros = currentReadingMicros;
-
+    // Skip first reading - need two points to calculate speed
+    if (isFirstReading) {
+      noInterrupts();
+      lastReadingMicros = capturedCurrent;
+      interrupts();
+      isFirstReading = false;
+      nextExpectedMicros = capturedCurrent + ZERO_TIMEOUT_MICROS;
+      return;
     }
+
+    // If we just recovered from zero, ignore this reading (re-establish baseline)
+    if (ignoreNextReading) {
+      noInterrupts();
+      lastReadingMicros = capturedCurrent;
+      interrupts();
+      ignoreNextReading = false;
+      nextExpectedMicros = capturedCurrent + ZERO_TIMEOUT_MICROS;
+      return;
+    }
+
+    // Calculate time difference (handles overflow correctly since both are unsigned long)
+    unsigned long timeDifference = capturedCurrent - capturedLast;
+    
+    // Sanity check: reject readings that are too fast (noise/bounce filter)
+    if (timeDifference < MIN_PULSE_INTERVAL) {
+      return;
+    }
+    
+    // Sanity check: reject readings that are impossibly slow (missed timeout somehow)
+    if (timeDifference > ZERO_TIMEOUT_MICROS) {
+      noInterrupts();
+      lastReadingMicros = capturedCurrent;
+      interrupts();
+      ignoreNextReading = true;
+      return;
+    }
+    
+    // Calculate RPM from time difference
+    float instantRPM = (1.00 / (float(timeDifference) / 1000000.0)) * 60.0 / targetsPerRevolution;
+    
+    // Sanity check: 650 RPM = ~45 MPH, reasonable maximum
+    if (instantRPM > 650) {
+      Serial.print("RPM over 650 rejected: ");
+      Serial.print(instantRPM);
+      Serial.print(" on pin ");
+      Serial.println(sensorPin);
+      return;
+    }
+    
+    // Add to moving average buffer
+    rpmHistory[rpmHistoryIndex] = instantRPM;
+    rpmHistoryIndex = (rpmHistoryIndex + 1) % AVG_SAMPLES;
+    if (rpmHistoryCount < AVG_SAMPLES) {
+      rpmHistoryCount++;
+    }
+    
+    // Calculate average RPM
+    float sum = 0;
+    for(int i = 0; i < rpmHistoryCount; i++) {
+      sum += rpmHistory[i];
+    }
+    rpm = sum / rpmHistoryCount;
+    
+    // Convert to MPH
+    wheelSpeedMPH = rpm * rpmToMphFactor;
+    
+    // Update timing for next expected reading (with 2x buffer for timeout detection)
+    nextExpectedMicros = capturedCurrent + (timeDifference * 2);
+    
+    // Update last reading time atomically
+    noInterrupts();
+    lastReadingMicros = capturedCurrent;
+    interrupts();
   }
 
   // Checks to see if a certain period of time has passed since last reading
   // If we surpass that threshold, set the RPM to zero
   void checkZeroRPM() {
-    // Only check for zero if we have established a baseline (not ignoring readings)
-    if (!ignoreNextReading && micros() > nextExpectedMicros) {
-
-      // Set last reading to current time
-      lastReadingMicros = micros();
-
-      // Set a flag so that we know we cannot do valuable calculations with the next reading
-      ignoreNextReading = true;
-
-      // Set RPM and MPH to zero
+    // Don't check if we haven't established baseline yet
+    if (isFirstReading || ignoreNextReading) return;
+    
+    unsigned long currentTime = micros();
+    
+    // Check if we've exceeded the expected next reading time
+    // This handles overflow correctly: if currentTime wraps around,
+    // the subtraction still works due to unsigned arithmetic properties
+    unsigned long timeSinceLastReading = currentTime - lastReadingMicros;
+    
+    if (timeSinceLastReading > ZERO_TIMEOUT_MICROS) {
+      // No readings in too long - wheel has stopped
+      
+      // Reset all state atomically
+      noInterrupts();
+      lastReadingMicros = currentTime;
+      interrupts();
+      
+      ignoreNextReading = true;  // Next reading will be used to re-establish baseline
       rpm = 0;
       wheelSpeedMPH = 0;
+      nextExpectedMicros = currentTime + ZERO_TIMEOUT_MICROS;
       
-      // Reset next expected time to far future
-      nextExpectedMicros = micros() + 10000000;
+      // Clear RPM history
+      for(int i = 0; i < AVG_SAMPLES; i++) {
+        rpmHistory[i] = 0;
+      }
+      rpmHistoryIndex = 0;
+      rpmHistoryCount = 0;
     }
   }
 
   // Compares wheel speed to GPS vehicle speed to see if we have wheelspin or skidding
   void checkWheelState() {
-    if ((wheelSpeedMPH - vehicleSpeedMPH) > wheelSpinThreshold) {
+    // Only check wheel state if we have valid GPS data
+    if (vehicleSpeedMPH < 0.1) {
+      wheelState = GOOD;  // Don't declare spin/skid at very low speeds
+      return;
+    }
+    
+    float speedDifference = wheelSpeedMPH - vehicleSpeedMPH;
+    
+    if (speedDifference > wheelSpinThreshold) {
       wheelState = SPIN;
-    } else if ((wheelSpeedMPH - vehicleSpeedMPH) < -wheelSkidThreshold) {
+    } else if (speedDifference < -wheelSkidThreshold) {
       wheelState = SKID;
     } else {
       wheelState = GOOD;
@@ -142,5 +218,24 @@ public:
     calculateRPM();
     checkZeroRPM();
     checkWheelState();
+  }
+  
+  // Call this from ISR - handles debouncing
+  void handleInterrupt() {
+    unsigned long now = micros();
+    
+    // Debounce: ignore triggers that are too close together
+    // This prevents double-triggers from noise/bouncing
+    unsigned long timeSinceLast = now - currentReadingMicros;
+    if (timeSinceLast < MIN_PULSE_INTERVAL) {
+      return;  // Too fast, likely bounce/noise
+    }
+    
+    // Update timestamps
+    lastReadingMicros = currentReadingMicros;
+    currentReadingMicros = now;
+    
+    // Signal main loop to calculate
+    updateFlag = true;
   }
 };

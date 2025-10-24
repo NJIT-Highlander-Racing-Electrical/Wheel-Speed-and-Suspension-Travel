@@ -2,8 +2,6 @@
 #include "Shock.h"
 #include "BajaCAN.h"
 
-
-
 #define DEBUG_WHEEL false
 #define DebugWheelSerial \
   if (DEBUG_WHEEL) Serial
@@ -11,7 +9,6 @@
 #define DEBUG_SHOCK true
 #define DebugShockSerial \
   if (DEBUG_SHOCK) Serial
-
 
 // Pin definitions for Wheels
 const int frontLeftWheelPin = 19;
@@ -40,27 +37,28 @@ Shock rearRightShock(rearRightShockPin, false, rearRightShock_restReading);
 void setup() {
   Serial.begin(460800);
 
+  delay(100);  // Brief delay for serial to stabilize
+
   // If the speed sensor detects a metal, it outputs a HIGH. Otherwise, LOW
-  // Thus, we want to trigger interupt on LOW to HIGH transition
+  // Thus, we want to trigger interrupt on LOW to HIGH transition
   attachInterrupt(digitalPinToInterrupt(frontLeftWheel.sensorPin), frontLeftISR, RISING);
   attachInterrupt(digitalPinToInterrupt(frontRightWheel.sensorPin), frontRightISR, RISING);
   attachInterrupt(digitalPinToInterrupt(rearLeftWheel.sensorPin), rearLeftISR, RISING);
   attachInterrupt(digitalPinToInterrupt(rearRightWheel.sensorPin), rearRightISR, RISING);
 
-  setupCAN(WHEEL_SPEED, 10); // sendInterval = 10 means that we will be sending 100 times per second
+  setupCAN(WHEEL_SPEED, 10);  // sendInterval = 10 means that we will be sending 100 times per second
+
+  Serial.println("Wheel Speed System Initialized");
 }
 
 void loop() {
-
-
   // updateWheelStatus calculates RPM if applicable, checks zero RPM status, and checks for wheelspin/wheel skid
   frontLeftWheel.updateWheelStatus();
   frontRightWheel.updateWheelStatus();
   rearLeftWheel.updateWheelStatus();
   rearRightWheel.updateWheelStatus();
 
-  // update CAN-Bus variables
-
+  // Update CAN-Bus variables
   frontLeftWheelSpeed = frontLeftWheel.wheelSpeedMPH;
   frontRightWheelSpeed = frontRightWheel.wheelSpeedMPH;
   rearLeftWheelSpeed = rearLeftWheel.wheelSpeedMPH;
@@ -71,30 +69,30 @@ void loop() {
   rearLeftWheelState = rearLeftWheel.wheelState;
   rearRightWheelState = rearRightWheel.wheelState;
 
-  frontLeftDisplacement = frontLeftShock.wheelPos;  // These four must become displacement eventually once we have LookupTable configured
+  // Read shock positions
+  frontLeftShock.getPosition();
+  frontRightShock.getPosition();
+  rearLeftShock.getPosition();
+  rearRightShock.getPosition();
+
+  frontLeftDisplacement = frontLeftShock.wheelPos;
   frontRightDisplacement = frontRightShock.wheelPos;
   rearLeftDisplacement = rearLeftShock.wheelPos;
   rearRightDisplacement = rearRightShock.wheelPos;
 
   // Print data to serial monitor
-
   DebugWheelSerial.print("frontLeftWheel_Speed:");
-  DebugWheelSerial.print(frontLeftWheel.wheelSpeedMPH);
+  DebugWheelSerial.print(frontLeftWheel.wheelSpeedMPH, 2);
   DebugWheelSerial.print(",");
   DebugWheelSerial.print("frontRightWheel_Speed:");
-  DebugWheelSerial.print(frontRightWheel.wheelSpeedMPH);
+  DebugWheelSerial.print(frontRightWheel.wheelSpeedMPH, 2);
   DebugWheelSerial.print(",");
   DebugWheelSerial.print("rearLeftWheel_Speed:");
-  DebugWheelSerial.print(rearLeftWheel.wheelSpeedMPH);
+  DebugWheelSerial.print(rearLeftWheel.wheelSpeedMPH, 2);
   DebugWheelSerial.print(",");
   DebugWheelSerial.print("rearRightWheel_Speed:");
-  DebugWheelSerial.print(rearRightWheel.wheelSpeedMPH);
+  DebugWheelSerial.print(rearRightWheel.wheelSpeedMPH, 2);
   DebugWheelSerial.println();
-
-  frontLeftShock.getPosition();
-  frontRightShock.getPosition();
-  rearLeftShock.getPosition();
-  rearRightShock.getPosition();
 
   DebugShockSerial.print("fl_pos:");
   DebugShockSerial.print(frontLeftShock.wheelPos);
@@ -110,43 +108,19 @@ void loop() {
   DebugShockSerial.println();
 }
 
+// ISR implementations - now use the debounced handleInterrupt() method
 void frontLeftISR() {
-
-  // Save current time
-  frontLeftWheel.lastReadingMicros = frontLeftWheel.currentReadingMicros;
-  frontLeftWheel.currentReadingMicros = micros();
-
-  // Set update flag so calculation is completed after we exit this ISR
-  frontLeftWheel.updateFlag = true;
+  frontLeftWheel.handleInterrupt();
 }
 
 void frontRightISR() {
-
-  // Save current time
-  frontRightWheel.lastReadingMicros = frontRightWheel.currentReadingMicros;
-  frontRightWheel.currentReadingMicros = micros();
-
-  // Set update flag so calculation is completed after we exit this ISR
-  frontRightWheel.updateFlag = true;
+  frontRightWheel.handleInterrupt();
 }
 
-
 void rearLeftISR() {
-
-  // Save current time
-  rearLeftWheel.lastReadingMicros = rearLeftWheel.currentReadingMicros;
-  rearLeftWheel.currentReadingMicros = micros();
-
-  // Set update flag so calculation is completed after we exit this ISR
-  rearLeftWheel.updateFlag = true;
+  rearLeftWheel.handleInterrupt();
 }
 
 void rearRightISR() {
-
-  // Save current time
-  rearRightWheel.lastReadingMicros = rearRightWheel.currentReadingMicros;
-  rearRightWheel.currentReadingMicros = micros();
-
-  // Set update flag so calculation is completed after we exit this ISR
-  rearRightWheel.updateFlag = true;
+  rearRightWheel.handleInterrupt();
 }
